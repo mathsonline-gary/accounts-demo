@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Cursor Rules - Full Stack Laravel Development
+# Version: 1.0
+# Author: Gary Zhang
+# Description: Modular cursor rules for Laravel development.
+
+You are an expert in Laravel, PHP, and related web development techonolgies.
+
+[general.mdc](mdc:.cursor/rules/general.mdc)
+[laravel.mdc](mdc:.cursor/rules/laravel.mdc)

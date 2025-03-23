@@ -1,0 +1,119 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# PHP & Laravel Development Rules
+
+## Dependencies And Versions
+- Use PHP 8.2.
+- Use Laravel 11.x.
+- Use Composer for package management.
+- TailwindCSS for utility-first styling.
+- NPM or Yarn for front-end dependencies.
+- Leverage PHP 8.2 features when appropriate (e.g. typed properties, match expressions).
+
+## Key Principles
+- Write consist, technical responses with accurate PHP examples.
+- Prioritize SOLID principles for object-oriented programming and clean architecture.
+- Follow PHP and Laravel best practices, ensuring consistency and readability.
+- Design for scalability and maintainability, ensuring the system can grow with ease.
+- Use PHPDoc for functions, classes, and properties.
+
+## Code Formatting
+- Utilize strict types where possible: `declare(strict_types=1);`
+- Use **Laravel Pint** with its default settings for code formatting.
+- Follow **Laravel Pint** default **laravel** preset that following the opinionated codeing style of Laravel.
+
+## Naming Conventions
+- Use consistent naming conventions for folders, classes, and files.
+- Follow Laravel's conventions.
+- Use `camelCase` for variables and methods.
+- Use `PascalCase` for class names.
+- Use `snake_case` for database columns.
+- Use meaningful variable and function names.
+
+## Error Handling
+- Use exceptions instead of error codes.
+- Use Laravel's exception handling and logging features to handle exceptions.
+- create custom exceptions when necessary.
+- Always catch and log exceptions.
+- Handle exceptions gracefully and return appropriate responses.
+
+## Static Analysis
+- Enforce type hints in method signatures.
+
+## Design Pattern
+- Follow Laravel's MVC framework
+- Follow **controller-service-model design pattern**:
+    - **Controllers** should only handle request validation and response formatting.
+    - **Services** should contain business logic and interact with models.
+    - **Eloquent models** should be responsible only for data access and relationships.
+- Avoid placing business logic in controllers and models.
+- Inject services into controllers via constructor dependency injection.
+- Service files should be places in folder */app/Services*.
+
+## Routing
+- Use Laravel's routing system.
+- Define all routes in the appropriate route files (`web.php`, `api.php`, `console.php`).
+- Maintain consistent and organized routes.
+- Follow RESTful principles for API routes
+- Apply API versioning (v1, v2, etc) for backward compatibility
+- Always use **named routes** for better maintainability (e.g. Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');).
+- Use **route groups** to organize routes by prefix or middleware.
+- Use **middleware** for request filtering and modification, instead of adding checks inside controllers.
+- Consider rate limiting for API requests.
+- Always use CSRF protection in web routes.
+
+## Authorization and Validation
+- Prioritize Laravel's built-in authentication (**Sanctum** or **Passport**).
+- Always validate user input.
+- Use Laravel's validation features for form and request validation.
+- Create custom **form requests** class if needed (e.g. StorePostRequest), instead of making complex validation in controllers.
+- Always place custom form requests within */app/Http/Requests*.
+- Custom form requests should always intend the base form request */app/Http/Requests/Request.php*.
+
+## Controllers
+- Keep controllers thin.
+- Controllers for APIs should be places within */app/Http/Controllers/Api*.
+- Controllers always extend the base controller */app/Http/Controllers/Controller.php* or */app/Http/Controllers/Api/Controllers*.
+- Controllers for APIs always return JSON responses with clear and standardized structure:
+    - **data**: the main data payload.
+    - **status**: "success" or "error".
+    - **message**: a human-readable message.
+    - **meta**: additional metadata (optional).
+    - **links**: links to related resources (optional).
+    - **errors**: error data (optional).
+
+## Models & Eloquent
+- Utilize Laravel's Eloquent ORM for database interactions.
+- Use Laravel's Eloquent ORM and Query Builder over raw SQL queries when possible.
+- Use **query scopes** (e.g. **local scope**, **dynamic scope**) to define common sets of query constraints to improve reusability.
+- Use **value objects** for custom model attribute casting (e.g. Address).
+- Use Eloquent relationships for data consistency.
+- Avoid N+1 query issues by using `with()` for eager loading.
+- Use database transactions when dealing with multiple DB operations.
+
+## Database
+- Always use migrations for database changes.
+- Create and maintain proper database migrations, factories, and seeders.
+- implement database indexing if needed.
+
+## Frontend
+- Follow semantic HTML practices.
+- Use ES6+ features.
+- If use Laravel Blade Template, implement **components** for reusable UI parts.
+- Organize styles with utility-first methodology using TailwindCSS.
+
+## Testing
+- Write unit tests for models and services.
+- Write feature tests for endpoints.
+- Use PHPUnit and Laravel built-in test helpers.
+- Use Laravel Factories for test data.
+- Mock external APIs with Fake implementations.
+
+## Configurations
+- Store **all configuration values** in `config/` files, **never hardcode them in code**.
+- Use `.env` files for **environment-specific settings**.
+- **Do not hardcode sensitive credentials**—use `config()` instead.
+- **Never use `env()` outside of `config/` files**—use `config()` instead.

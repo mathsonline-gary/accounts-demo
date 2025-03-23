@@ -1,0 +1,75 @@
+# Ignore node_modules (Frontend dependencies)
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Ignore Composer dependencies
+vendor/
+composer.lock
+
+# Ignore environment files (Sensitive data)
+.env
+.env.example
+.env.*.backup
+
+# Ignore compiled application files
+bootstrap/cache/
+bootstrap/cache/config.php
+bootstrap/cache/routes.php
+bootstrap/cache/*.php
+storage/framework/
+storage/logs/
+storage/debugbar/
+storage/app/public/
+public/storage/
+
+# Ignore IDE and editor files
+.idea/
+.vscode/
+*.code-workspace
+
+# Ignore OS system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ignore Laravel storage and cache
+storage/logs/*.log
+storage/logs/*.json
+storage/logs/*.debug
+storage/framework/cache/data/
+storage/framework/views/*.php
+storage/framework/sessions/
+
+# Ignore Laravel test snapshots
+tests/_output/
+tests/_support/_generated/
+tests/_data/
+
+# Ignore database files (if using SQLite for testing)
+database/*.sqlite
+database/seeds/*.php
+
+# Ignore static analysis and coverage reports
+phpunit.xml
+phpunit.xml.dist
+coverage/
+phpstan.neon
+phpstan-baseline.neon
+phpmd.xml
+pint.json
+
+# Ignore Laravel Sail & Docker files (if applicable)
+docker/
+docker-compose.override.yml
+.dockerignore
+sail
+
+# Ignore CI/CD configuration (if applicable)
+.github/
+.gitlab-ci.yml
+
+# Ignore Cursor IDE metadata
+.cursorignore
+.cursor/

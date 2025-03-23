@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# General Coding Standards
+
+## Key Principles
+- Prefer iteration and modularization over duplication.
+
+## File Structure
+- Organize code by feature rather than type.
+- Group related files in directories.
+
+## Documentation
+- Include README files for project modules.
