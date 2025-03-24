@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: true
 ---
 # PHP & Laravel Development Rules
@@ -79,7 +79,6 @@ alwaysApply: true
 - Controllers always extend the base controller */app/Http/Controllers/Controller.php* or */app/Http/Controllers/Api/Controllers*.
 - Controllers for APIs always return JSON responses with clear and standardized structure:
     - **data**: the main data payload.
-    - **status**: "success" or "error".
     - **message**: a human-readable message.
     - **meta**: additional metadata (optional).
     - **links**: links to related resources (optional).
