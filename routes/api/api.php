@@ -1,3 +1,7 @@
 <?php
 
-require __DIR__.'/auth.php';
+Route::prefix('v1')
+    ->name('v1.')
+    ->group(function () {
+        require __DIR__.'/auth.php';
+    });

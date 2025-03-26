@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Api\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthenticatedTokenController extends Controller
 {
-    public function store(LoginRequest $request)
+    public function store(LoginRequest $request): JsonResponse
     {
         $token = $request->authenticate();
 
@@ -21,7 +22,7 @@ class AuthenticatedTokenController extends Controller
         ]);
     }
 
-    public function destroy()
+    public function destroy(): JsonResponse
     {
         Auth::logout();
 
@@ -30,7 +31,7 @@ class AuthenticatedTokenController extends Controller
         ]);
     }
 
-    public function refresh()
+    public function refresh(): JsonResponse
     {
         $token = JWTAuth::refresh(JWTAuth::getToken());
 

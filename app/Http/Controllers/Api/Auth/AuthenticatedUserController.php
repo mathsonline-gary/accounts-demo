@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Api\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthenticatedUserController extends Controller
 {
-    public function show()
+    public function show(): JsonResponse
     {
         try {
             $user = Auth::user();
