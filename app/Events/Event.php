@@ -7,7 +7,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
 
-abstract class BaseEvent
+abstract class Event
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 

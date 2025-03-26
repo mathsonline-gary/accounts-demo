@@ -1,0 +1,51 @@
+[
+    {
+        "id": 1,
+        "brand_id": 8,
+        "code": "REGULAR",
+        "description": "Regular prices",
+        "tags": []
+    },
+    {
+        "id": 2,
+        "brand_id": 8,
+        "code": "12PLUS6",
+        "description": "12 + 6 months for annual plans",
+        "tags": ["18 months"]
+    },
+    {
+        "id": 3,
+        "brand_id": 8,
+        "code": "ORIGINAL",
+        "description": "The old prices",
+        "tags": []
+    },
+    {
+        "id": 4,
+        "brand_id": 8,
+        "code": "10DISC",
+        "description": "10% off",
+        "tags": ["10% off"]
+    },
+    {
+        "id": 5,
+        "brand_id": 8,
+        "code": "20DISC",
+        "description": "20% off",
+        "tags": ["20% off"]
+    },
+    {
+        "id": 6,
+        "brand_id": 8,
+        "code": "50DISC",
+        "description": "50% off",
+        "tags": ["50% off"]
+    },
+    {
+        "id": 7,
+        "brand_id": 8,
+        "code": "12PLUS3",
+        "description": "12 + 3 months for annual plans",
+        "tags": ["15 months"]
+    }
+]

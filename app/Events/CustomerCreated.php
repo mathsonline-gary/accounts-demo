@@ -4,7 +4,7 @@ namespace App\Events;
 
 use App\Models\User;
 
-class CustomerCreated extends BaseEvent
+class CustomerCreated extends Event
 {
     /**
      * Create a new event instance.
