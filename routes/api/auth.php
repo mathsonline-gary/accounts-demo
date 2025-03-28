@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\Auth\AuthenticatedTokenController;
-use App\Http\Controllers\Api\Auth\AuthenticatedUserController;
-use App\Http\Controllers\Api\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\AuthenticatedTokenController;
+use App\Http\Controllers\Auth\AuthenticatedUserController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')

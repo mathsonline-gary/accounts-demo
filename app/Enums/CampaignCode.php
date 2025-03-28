@@ -1,0 +1,15 @@
+<?php
+
+namespace App\Enums;
+
+enum CampaignCode: string
+{
+    case REGULAR = 'REGULAR';
+    case ORIGINAL = 'ORIGINAL';
+    case TESTING = 'TESTING';
+    case PLUS6 = '12PLUS6';
+    case PLUS3 = '12PLUS3';
+    case DISCOUNT_10 = '10DISC';
+    case DISCOUNT_20 = '20DISC';
+    case DISCOUNT_50 = '50DISC';
+}

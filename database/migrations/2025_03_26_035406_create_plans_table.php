@@ -35,7 +35,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('extra_months')
                 ->default(0)
                 ->comment('The additional months compared to the regular plan (e.t. 12 months)');
-            $table->integer('user_limit')
+            $table->integer('student_limit')
                 ->default(1);
             $table->tinyInteger('type')
                 ->comment('1: for standard customers; 2: for homeschoolers; 3: for custom orders; 4: deprecated plans');

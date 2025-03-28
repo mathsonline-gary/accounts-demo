@@ -11,7 +11,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -27,7 +27,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -43,7 +43,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -59,7 +59,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -75,7 +75,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 2,
         "currency": "usd"
     },
@@ -91,7 +91,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 2,
         "currency": "usd"
     },
@@ -107,7 +107,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 2,
         "currency": "usd"
     },
@@ -123,7 +123,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 2,
         "currency": "usd"
     },
@@ -139,7 +139,7 @@
         "is_recurring": 0,
         "period_in_months": 18,
         "extra_months": 6,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -155,7 +155,7 @@
         "is_recurring": 0,
         "period_in_months": 18,
         "extra_months": 6,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -171,7 +171,7 @@
         "is_recurring": 0,
         "period_in_months": 18,
         "extra_months": 6,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 2,
         "currency": "usd"
     },
@@ -187,7 +187,7 @@
         "is_recurring": 0,
         "period_in_months": 18,
         "extra_months": 6,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 2,
         "currency": "usd"
     },
@@ -203,7 +203,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -219,7 +219,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -235,7 +235,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -251,7 +251,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -267,7 +267,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 2,
         "currency": "usd"
     },
@@ -283,7 +283,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 2,
         "currency": "usd"
     },
@@ -299,7 +299,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 2,
         "currency": "usd"
     },
@@ -315,7 +315,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 2,
         "currency": "usd"
     },
@@ -331,7 +331,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -347,7 +347,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -363,7 +363,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -379,7 +379,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -395,7 +395,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -411,7 +411,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -427,7 +427,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -443,7 +443,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -459,7 +459,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -475,7 +475,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -491,7 +491,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -507,7 +507,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -523,7 +523,7 @@
         "is_recurring": 0,
         "period_in_months": 15,
         "extra_months": 3,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -539,7 +539,7 @@
         "is_recurring": 0,
         "period_in_months": 15,
         "extra_months": 3,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -555,7 +555,7 @@
         "is_recurring": 0,
         "period_in_months": 15,
         "extra_months": 3,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 2,
         "currency": "usd"
     },
@@ -571,7 +571,7 @@
         "is_recurring": 0,
         "period_in_months": 15,
         "extra_months": 3,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 2,
         "currency": "usd"
     },
@@ -587,7 +587,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -603,7 +603,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 1,
         "currency": "usd"
     },
@@ -619,7 +619,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -635,7 +635,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 1,
         "currency": "usd"
     },
@@ -651,7 +651,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 2,
         "currency": "usd"
     },
@@ -660,14 +660,14 @@
         "brand_id": 8,
         "stripe_price_id": "price_1Pt1Y4JIXAtpFrh67JixBvxW",
         "code": "HS_Y1",
-        "description": "CTCMath Single Student Membership - 12 Months",
+        "description": "CTCMath Single Student Homeschool Membership - 12 Months",
         "price_original": 257.0,
         "price": 1.0,
         "price_saved": null,
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 2,
         "currency": "usd"
     },
@@ -676,14 +676,14 @@
         "brand_id": 8,
         "stripe_price_id": "price_1Pt1vHJIXAtpFrh66t9OCyY1",
         "code": "HS_M3",
-        "description": "CTCMath Family Membership",
+        "description": "CTCMath Family Homeschool Membership",
         "price_original": 59.9,
         "price": 1.0,
         "price_saved": null,
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 2,
         "currency": "usd"
     },
@@ -692,14 +692,14 @@
         "brand_id": 8,
         "stripe_price_id": "price_1Pt1vcJIXAtpFrh6sGQnkNUA",
         "code": "HS_Y3",
-        "description": "CTCMath Family Membership - 12 Months",
+        "description": "CTCMath Family Homeschool Membership - 12 Months",
         "price_original": 397.0,
         "price": 1.0,
         "price_saved": null,
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 2,
         "currency": "usd"
     },
@@ -715,7 +715,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 4,
         "currency": "usd"
     },
@@ -731,7 +731,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 4,
         "currency": "usd"
     },
@@ -747,7 +747,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 4,
         "currency": "usd"
     },
@@ -763,7 +763,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 4,
         "currency": "usd"
     },
@@ -772,14 +772,14 @@
         "brand_id": 8,
         "stripe_price_id": null,
         "code": "S1",
-        "description": "CTCMath Single Studen Membership - 6 Months (Deprecated)",
+        "description": "CTCMath Single Student Membership - 6 Months (Deprecated)",
         "price_original": 0.0,
         "price": 0.0,
         "price_saved": null,
         "is_recurring": 0,
         "period_in_months": 6,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 4,
         "currency": "usd"
     },
@@ -795,7 +795,7 @@
         "is_recurring": 0,
         "period_in_months": 6,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 4,
         "currency": "usd"
     },
@@ -811,7 +811,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 4,
         "currency": "usd"
     },
@@ -827,7 +827,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 1,
+        "student_limit": 1,
         "type": 4,
         "currency": "usd"
     },
@@ -843,7 +843,7 @@
         "is_recurring": 1,
         "period_in_months": 1,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 4,
         "currency": "usd"
     },
@@ -859,7 +859,7 @@
         "is_recurring": 0,
         "period_in_months": 12,
         "extra_months": 0,
-        "user_limit": 5,
+        "student_limit": 5,
         "type": 4,
         "currency": "usd"
     }

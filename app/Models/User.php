@@ -91,4 +91,36 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsTo(Brand::class, 'brand_id', 'id');
     }
+
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::ADMIN;
+    }
+
+    /**
+     * Check if the user is a customer.
+     */
+    public function isCustomer(): bool
+    {
+        return $this->role === UserRole::CUSTOMER;
+    }
+
+    /**
+     * Check if the user is a student.
+     */
+    public function isStudent(): bool
+    {
+        return $this->role === UserRole::STUDENT;
+    }
+
+    /**
+     * Check if the user is a teacher.
+     */
+    public function isTeacher(): bool
+    {
+        return $this->role === UserRole::TEACHER;
+    }
 }

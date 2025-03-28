@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | First Party Services
+    |--------------------------------------------------------------------------
+    |
+    | Here are the configuration values for our first-party services.
+    |
+    */
+
+    'mol' => [
+        'nonce_secret' => env('MOL_NONCE_SECRET'),
+        'testing_plans_enabled' => env('MOL_TESTING_PLANS_ENABLED', false),
+    ],
+
 ];

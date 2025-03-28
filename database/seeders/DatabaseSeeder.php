@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             BrandSeeder::class,
             CampaignSeeder::class,
             PlanSeeder::class,
+            PromoSeeder::class,
         ]);
     }
 }

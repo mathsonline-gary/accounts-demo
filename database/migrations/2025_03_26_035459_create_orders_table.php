@@ -13,9 +13,13 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->string('uuid', 255)
+                ->unique();
             $table->unsignedBigInteger('brand_id');
             $table->tinyInteger('type')
                 ->comment('1 = new purchase, 2 = renewal, 3 = trial, 4 = coupon redemption, 5 = gift, 6 = offline');
+
+            // Stripe
             $table->string('stripe_checkout_session_id', 255)
                 ->nullable();
             $table->string('stripe_invoice_id', 255)
@@ -24,22 +28,67 @@ return new class extends Migration
                 ->nullable();
             $table->text('stripe_checkout_session_client_secret')
                 ->nullable();
-            $table->text('checkout_url')
+
+            // User information
+            $table->unsignedBigInteger('creator_id')
+                ->comment('The ID of the user who created the order');
+            $table->unsignedBigInteger('recipient_id')
+                ->comment('The user ID of the recipient');
+            $table->string('recipient_email', 255)
+                ->comment('The snapshot of the recipient email');
+            $table->string('recipient_first_name', 255)
+                ->comment('The snapshot of the recipient first name');
+            $table->string('recipient_last_name', 255)
+                ->comment('The snapshot of the recipient last name');
+
+            // Billing information
+            $table->string('billing_address_1', 255)
                 ->nullable();
-            $table->unsignedBigInteger('customer_id');
+            $table->string('billing_address_2', 255)
+                ->nullable();
+            $table->string('billing_city', 255)
+                ->nullable();
+            $table->string('billing_state', 255)
+                ->nullable();
+            $table->string('billing_postal_code', 255)
+                ->nullable();
+            $table->string('billing_country', 255)
+                ->nullable();
+            $table->string('billing_phone', 255)
+                ->nullable();
+            $table->string('billing_name', 255)
+                ->nullable();
+            $table->string('billing_email', 255)
+                ->nullable();
+
+            // Plan & pricing
             $table->unsignedBigInteger('plan_id')
                 ->comment('The plan ID of the order');
+            $table->decimal('plan_price', 10, 2);
+            $table->decimal('sales_tax', 10, 2)
+                ->nullable();
+
+            // Referral code
             $table->string('referral_code', 255)
                 ->nullable();
             $table->tinyInteger('referral_code_type')
                 ->nullable()
-                ->comment('1: Promo, 2: Renewal Coupon, 3: Coupon, 4: Sales Code');
-            $table->decimal('plan_price', 10);
-            $table->decimal('sales_tax', 10)->nullable();
+                ->comment('1: Promo, 2: Renewal Coupon, 3: Coupon, 4: Offline Sales Code');
+            $table->boolean('is_referral_code_valid')
+                ->nullable()
+                ->default(true)
+                ->comment('Whether the referral code is valid. Null if the referral code is not provided.');
+            $table->string('referral_code_invalid_reason', 255)
+                ->nullable()
+                ->comment('The reason the referral code is invalid. Null if the referral code is valid or not provided.');
+
+            // Status
             $table->string('status');
-            $table->timestamp('paid_at')->nullable();
+            $table->timestamp('paid_at')
+                ->nullable();
             $table->boolean('is_hidden')
                 ->default(false);
+
             $table->timestamps();
         });
     }
