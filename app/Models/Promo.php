@@ -49,7 +49,7 @@ class Promo extends Model
     /**
      * Scope a query to only include promos with the given code.
      */
-    public function scopeOfCode(Builder $query, string $code): void
+    public function scopeByCode(Builder $query, string $code): void
     {
         $query->where('code', $code);
     }
@@ -61,5 +61,33 @@ class Promo extends Model
     {
         $query->where('is_active', true)
             ->where('expires_at', '>', now());
+    }
+
+    /**
+     * Check if the promo is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+
+    /**
+     * Check if the promo is expired.
+     */
+    public function isExpired(): bool
+    {
+        if ($this->expires_at === null) {
+            return false;
+        }
+
+        return $this->expires_at < now();
+    }
+
+    /**
+     * Check if the promo is redeemable.
+     */
+    public function isRedeemable(): bool
+    {
+        return $this->is_active && ! $this->isExpired();
     }
 }

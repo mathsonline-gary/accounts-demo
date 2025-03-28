@@ -16,7 +16,7 @@ class PlanController extends Controller
     public function search(SearchPlanRequest $request): AnonymousResourceCollection
     {
         $plans = $this->planService->searchPlanList([
-            ...$request->validated()
+            ...$request->validated(),
         ]);
 
         return PlanResource::collection($plans);

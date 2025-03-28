@@ -82,7 +82,7 @@ class Plan extends Model
         $query->where('type', $type);
     }
 
-     /**
+    /**
      * Scope a query to only include testing plans.
      */
     public function scopeTesting(Builder $query): void
@@ -147,7 +147,7 @@ class Plan extends Model
     {
         $query->where('student_limit', '>', 1);
     }
-    
+
     /**
      * Determine if the plan is recurring.
      */
@@ -171,5 +171,4 @@ class Plan extends Model
     {
         return $this->type === PlanType::HOMESCHOOL;
     }
-    
 }

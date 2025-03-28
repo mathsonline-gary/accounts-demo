@@ -11,9 +11,9 @@ class Price
     /**
      * Construct a new Price instance.
      */
-    public function __construct(float $amount, ?string $currency = null)
+    public function __construct(float $amount, string $currency)
     {
         $this->amount = $amount;
-        $this->currency = $currency ?? config('app.brand.default_currency');
+        $this->currency = $currency;
     }
 }

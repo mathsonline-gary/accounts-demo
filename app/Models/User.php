@@ -24,20 +24,11 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'brand_id',
         'role_id',
-        'stripe_customer_id',
         'first_name',
         'last_name',
         'email',
         'username',
         'password',
-        'home_phone',
-        'mobile_phone',
-        'address_line_1',
-        'address_line_2',
-        'address_city',
-        'address_state',
-        'address_postal_code',
-        'address_country',
         'ip_address',
     ];
 

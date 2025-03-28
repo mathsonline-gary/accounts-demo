@@ -71,41 +71,12 @@ class PlanService
 
         // Verify nonce code if promo code is ORIG
         if ($promoCode === 'ORIG') {
-            if (empty($nonceCode) || ! $this->verifyNonceCode($nonceCode)) {
+            if (empty($nonceCode) || ! verify_nonce_code($nonceCode)) {
                 return null;
             }
         }
 
-        return Promo::ofBrand($brand)->ofCode($promoCode)->redeemable()->first();
-    }
-
-    /**
-     * Verify the nonce code.
-     */
-    private function verifyNonceCode(string $nonceCode): bool
-    {
-        $secret = config('services.mol.nonce_secret');
-
-        if (! is_string($nonceCode)) {
-            return false;
-        }
-
-        $a = explode(',', $nonceCode);
-        if (count($a) != 3) {
-            return false;
-        }
-        $salt = $a[0];
-        $maxTime = intval($a[1]);
-        $hash = $a[2];
-        $back = sha1($salt.$secret.$maxTime);
-        if ($back != $hash) {
-            return false;
-        }
-        if (time() > $maxTime) {
-            return false;
-        }
-
-        return true;
+        return Promo::ofBrand($brand)->byCode($promoCode)->redeemable()->first();
     }
 
     /**
@@ -113,6 +84,6 @@ class PlanService
      */
     private function getValidRenewalCoupon(Brand $brand, string $couponCode): ?RenewalCoupon
     {
-        return RenewalCoupon::ofBrand($brand)->ofCode($couponCode)->redeemable()->first();
+        return RenewalCoupon::ofBrand($brand)->byCode($couponCode)->redeemable()->first();
     }
 }

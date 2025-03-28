@@ -74,11 +74,7 @@ return new class extends Migration
             $table->tinyInteger('referral_code_type')
                 ->nullable()
                 ->comment('1: Promo, 2: Renewal Coupon, 3: Coupon, 4: Offline Sales Code');
-            $table->boolean('is_referral_code_valid')
-                ->nullable()
-                ->default(true)
-                ->comment('Whether the referral code is valid. Null if the referral code is not provided.');
-            $table->string('referral_code_invalid_reason', 255)
+            $table->string('referral_code_validation_error', 255)
                 ->nullable()
                 ->comment('The reason the referral code is invalid. Null if the referral code is valid or not provided.');
 

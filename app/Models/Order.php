@@ -37,6 +37,7 @@ class Order extends Model
         'sales_tax',
         'referral_code',
         'referral_code_type',
+        'referral_code_validation_error',
         'status',
         'paid_at',
         'is_hidden',

@@ -30,21 +30,4 @@ class Campaign extends Model
     {
         $query->where('code', CampaignCode::REGULAR);
     }
-
-    /**
-     * Scope a query to get the testing campaign.
-     */
-    public function scopeTesting(Builder $query): void
-    {
-        $query->where('code', CampaignCode::TESTING);
-    }
-
-    /**
-     * Scope a query to get the testing campaign.
-     */
-    public function scopeWithoutTesting(Builder $query): void
-    {
-        $query->where('code', '!=', CampaignCode::TESTING);
-    }
-
 }

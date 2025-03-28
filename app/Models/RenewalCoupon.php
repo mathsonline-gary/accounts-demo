@@ -49,7 +49,7 @@ class RenewalCoupon extends Model
     /**
      * Scope a query to only include renewal coupons with the given code.
      */
-    public function scopeOfCode(Builder $query, string $code): void
+    public function scopeByCode(Builder $query, string $code): void
     {
         $query->where('code', $code);
     }
@@ -61,5 +61,29 @@ class RenewalCoupon extends Model
     {
         $query->where('expires_at', '>', now())
             ->whereNull('redeemed_at');
+    }
+
+    /**
+     * Check if the renewal coupon is expired.
+     */
+    public function isExpired(): bool
+    {
+        return $this->expires_at < now();
+    }
+
+    /**
+     * Check if the renewal coupon is redeemed.
+     */
+    public function isRedeemed(): bool
+    {
+        return $this->redeemed_at !== null;
+    }
+
+    /**
+     * Check if the renewal coupon is redeemable.
+     */
+    public function isRedeemable(): bool
+    {
+        return ! $this->isExpired() && ! $this->isRedeemed();
     }
 }
