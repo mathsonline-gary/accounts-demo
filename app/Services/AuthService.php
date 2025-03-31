@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Throwable;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthService
@@ -40,6 +39,7 @@ class AuthService
      * } $payload
      *
      * @throws AccountInitializationFailedException
+     * @throws Throwable
      */
     public function register(array $payload): ?string
     {
@@ -67,15 +67,7 @@ class AuthService
 
             event(new Registered($user));
 
-            try {
-                $token = JWTAuth::fromUser($user);
-            } catch (JWTException $e) {
-                Log::error("Failed to create JWT token: {$e->getMessage()}", ['user_id' => $user->id]);
-
-                $token = null;
-            }
-
-            return $token;
+            return JWTAuth::fromUser($user);
         }
 
         // TODO: register school account
@@ -127,43 +119,42 @@ class AuthService
         ]);
 
         try {
-            DB::beginTransaction();
+            return DB::transaction(function () use ($payload) {
+                // TODO: upsert Stripe customer.
 
-            // TODO: upsert Stripe customer.
+                $user = User::create([
+                    'brand_id' => $payload['brand_id'],
+                    'role_id' => UserRole::CUSTOMER->value,
+                    // 'stripe_customer_id' => $stripeCustomer->id,
+                    'username' => $payload['username'],
+                    'first_name' => $payload['first_name'],
+                    'last_name' => $payload['last_name'],
+                    'email' => $payload['email'],
+                    'password' => Hash::make($payload['password']),
+                    'home_phone' => $payload['home_phone'],
+                    'mobile_phone' => $payload['mobile_phone'],
+                    'address_line_1' => $payload['address_line_1'],
+                    'address_line_2' => $payload['address_line_2'],
+                    'address_city' => $payload['address_city'],
+                    'address_state' => $payload['address_state'],
+                    'address_postal_code' => $payload['address_postal_code'],
+                    'address_country' => $payload['address_country'],
+                    'ip_address' => $payload['ip_address'],
+                ]);
 
-            $user = User::create([
-                'brand_id' => $payload['brand_id'],
-                'role_id' => UserRole::CUSTOMER->value,
-                // 'stripe_customer_id' => $stripeCustomer->id,
-                'username' => $payload['username'],
-                'first_name' => $payload['first_name'],
-                'last_name' => $payload['last_name'],
-                'email' => $payload['email'],
-                'password' => Hash::make($payload['password']),
-                'home_phone' => $payload['home_phone'],
-                'mobile_phone' => $payload['mobile_phone'],
-                'address_line_1' => $payload['address_line_1'],
-                'address_line_2' => $payload['address_line_2'],
-                'address_city' => $payload['address_city'],
-                'address_state' => $payload['address_state'],
-                'address_postal_code' => $payload['address_postal_code'],
-                'address_country' => $payload['address_country'],
-                'ip_address' => $payload['ip_address'],
+                event(new CustomerCreated($user));
+
+                // TODO: create customer, school, etc.
+
+                return $user;
+            }, 5);
+        } catch (Throwable $e) {
+            Log::error("Failed to initialize customer account: {$e->getMessage()}", [
+                'payload' => $payload,
+                'exception' => $e,
             ]);
 
-            event(new CustomerCreated($user));
-
-            // TODO: create customer, school, etc.
-
-            DB::commit();
-        } catch (Throwable $e) {
-            DB::rollBack();
-
-            Log::error("Failed to create account: {$e->getMessage()}", ['payload' => $payload]);
-
-            throw new AccountInitializationFailedException;
+            throw new AccountInitializationFailedException('Failed to initialize customer account.', 0, $e);
         }
-
-        return $user;
     }
 }

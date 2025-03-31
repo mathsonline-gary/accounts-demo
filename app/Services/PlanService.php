@@ -29,11 +29,11 @@ class PlanService
         ]);
 
         $brand = Brand::from($filters['brand_id']);
-        $isTesting = $filters['is_testing'] = config('services.mol.testing_plans_enabled') && ($filters['is_testing'] ?? false);
+        $isTesting = config('services.mol.testing_plans_enabled') && ($filters['is_testing'] ?? false);
         $promoCode = $filters['promo_code'] ?? '';
         $nonceCode = $filters['nonce_code'] ?? '';
         $renewalCouponCode = $filters['renewal_coupon_code'] ?? '';
-        $pagination = $filters['pagination'] = $filters['pagination'] ?? false;
+        $pagination = $filters['pagination'] ?? false;
         $perPage = $filters['per_page'] ?? 10;
         $page = $filters['page'] ?? 1;
 

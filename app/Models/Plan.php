@@ -171,4 +171,12 @@ class Plan extends Model
     {
         return $this->type === PlanType::HOMESCHOOL;
     }
+
+    /**
+     * Determine if the plan is a testing plan.
+     */
+    public function isTesting(): bool
+    {
+        return $this->price === 1;
+    }
 }

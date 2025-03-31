@@ -7,6 +7,7 @@ use App\Enums\OrderType;
 use App\Enums\ReferralCodeType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Order extends Model
 {
@@ -32,8 +33,8 @@ class Order extends Model
         'billing_phone',
         'billing_name',
         'billing_email',
-        'plan_id',
-        'plan_price',
+        'item_id',
+        'item_price',
         'sales_tax',
         'referral_code',
         'referral_code_type',
@@ -49,8 +50,8 @@ class Order extends Model
             'brand_id' => 'integer',
             'recipient_id' => 'integer',
             'creator_id' => 'integer',
-            'plan_id' => 'integer',
-            'plan_price' => 'float',
+            'item_id' => 'integer',
+            'item_price' => 'float',
             'sales_tax' => 'float',
             'type' => OrderType::class,
             'status' => OrderStatus::class,
@@ -58,6 +59,30 @@ class Order extends Model
             'paid_at' => 'datetime',
             'is_hidden' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the item associated with the order. i.e. plan.
+     */
+    public function item(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class, 'item_id', 'id');
+    }
+
+    /**
+     * Get the creator associated with the order.
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creator_id', 'id');
+    }
+
+    /**
+     * Get the recipient associated with the order.
+     */
+    public function recipient(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recipient_id', 'id');
     }
 
     /**

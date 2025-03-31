@@ -6,16 +6,8 @@ use App\Enums\Brand;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Enums\ReferralCodeType;
-use App\Exceptions\InvalidNonceCodeException;
-use App\Exceptions\InvalidOrderException;
-use App\Exceptions\PlanNotFoundException;
-use App\Exceptions\PromoExpiredException;
-use App\Exceptions\PromoNotActiveException;
-use App\Exceptions\PromoNotFoundException;
+use App\Exceptions\InvalidOrderItemException;
 use App\Exceptions\RecentPaidOrderExistsException;
-use App\Exceptions\RenewalCouponExpiredException;
-use App\Exceptions\RenewalCouponNotFoundException;
-use App\Exceptions\RenewalCouponRedeemedException;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\Plan;
@@ -23,6 +15,7 @@ use App\Models\Promo;
 use App\Models\RenewalCoupon;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -34,53 +27,37 @@ class OrderService
      *
      * @param array{
      *     type: OrderType,
-     *     plan_id: int,
+     *     item_id: int,
      *     creator: User,
-     *     renewal_coupon_code: string|null,
-     *     promo_code: string|null,
-     *     nonce_code: string|null,
+     *     referral_code: string|null,
+     *     referral_code_type: ReferralCodeType|null,
      * } $data
      *
      * @throws RecentPaidOrderExistsException
      * @throws AuthorizationException
-     * @throws InvalidOrderException
+     * @throws InvalidOrderItemException
      */
     public function createOrder(array $data): Order
     {
         $data = Arr::only($data, [
             'type',
-            'plan_id',
+            'item_id',
             'creator',
-            'renewal_coupon_code',
-            'promo_code',
-            'nonce_code',
+            'referral_code',
+            'referral_code_type',
         ]);
 
         $creator = $data['creator'];
-        $brand = Brand::from($creator->brand_id);
-        $appliedPromoCode = $data['promo_code'];
-        $appliedRenewalCouponCode = $data['renewal_coupon_code'];
 
         // Authorize the creator to create an order by order type
         if (! $creator->can('create', [Order::class, $data['type']])) {
-            Log::warning('An unauthorized user attempted to create an order', [
+            Log::warning('The user is unauthorized to create the order type', [
                 'user_id' => $creator->id,
                 'user_role' => $creator->role->toString(),
                 'order_type' => $data['type']->toString(),
             ]);
 
             throw new AuthorizationException('You are not authorized to create this type of order');
-        }
-
-        // Check if the user has a recent paid order
-        if (in_array($data['type'], [OrderType::NEW, OrderType::RENEWAL])) {
-            if ($this->hasPurchasedRecently($data['creator'])) {
-                Log::warning('A user attempted to create an order while having a recent purchase', [
-                    'user_id' => $creator->id,
-                ]);
-
-                throw new RecentPaidOrderExistsException;
-            }
         }
 
         $order = new Order([
@@ -92,118 +69,30 @@ class OrderService
             'recipient_email' => $creator->email,
             'recipient_first_name' => $creator->first_name,
             'recipient_last_name' => $creator->last_name,
+            'item_id' => $data['item_id'],
             'status' => OrderStatus::CREATING,
+            'referral_code' => $data['referral_code'],
+            'referral_code_type' => $data['referral_code_type'],
         ]);
 
-        // Validate and get promo if provided
-        $promo = null;
-
-        try {
-            $promo = $this->getValidPromo($brand, $appliedPromoCode, $data['nonce_code']);
-        } catch (InvalidNonceCodeException) {
-            Log::warning('A user attempted to create an order with an invalid nonce code', [
-                'user_id' => $creator->id,
-                'promo_code' => $appliedPromoCode,
-                'nonce_code' => $data['nonce_code'],
-            ]);
-
-            $order->referral_code_validation_error = 'invalid_nonce';
-        } catch (PromoNotFoundException) {
-            Log::warning('A user attempted to create an order with a non-existent promo code', [
-                'user_id' => $creator->id,
-                'promo_code' => $appliedPromoCode,
-                'nonce_code' => $data['nonce_code'],
-            ]);
-
-            $order->referral_code_validation_error = 'not_found';
-        } catch (PromoExpiredException) {
-            Log::warning('A user attempted to create an order with an expired promo code', [
-                'user_id' => $creator->id,
-                'promo_code' => $appliedPromoCode,
-                'nonce_code' => $data['nonce_code'],
-            ]);
-
-            $order->referral_code_validation_error = 'expired';
-        } catch (PromoNotActiveException) {
-            Log::warning('A user attempted to create an order with an inactive promo code', [
-                'user_id' => $creator->id,
-                'promo_code' => $appliedPromoCode,
-                'nonce_code' => $data['nonce_code'],
-            ]);
-
-            $order->referral_code_validation_error = 'not_active';
-        } finally {
-            if (! empty($appliedPromoCode)) {
-                $order->referral_code = $appliedPromoCode;
-                $order->referral_code_type = ReferralCodeType::PROMO;
-            }
-        }
-
-        // Validate and get renewal coupon if provided
-        $renewalCoupon = null;
-
-        try {
-            $renewalCoupon = $this->getValidRenewalCoupon($brand, $appliedRenewalCouponCode);
-        } catch (RenewalCouponNotFoundException) {
-            Log::warning('A user attempted to create an order with a non-existent renewal coupon', [
-                'user_id' => $creator->id,
-                'renewal_coupon_code' => $appliedRenewalCouponCode,
-            ]);
-
-            $order->referral_code_validation_error = 'not_found';
-        } catch (RenewalCouponExpiredException) {
-            Log::warning('A user attempted to create an order with an expired renewal coupon', [
-                'user_id' => $creator->id,
-                'renewal_coupon_code' => $appliedRenewalCouponCode,
-            ]);
-
-            $order->referral_code_validation_error = 'expired';
-        } catch (RenewalCouponRedeemedException) {
-            Log::warning('A user attempted to create an order with a redeemed renewal coupon', [
-                'user_id' => $creator->id,
-                'renewal_coupon_code' => $appliedRenewalCouponCode,
-            ]);
-
-            $order->referral_code_validation_error = 'redeemed';
-        } finally {
-            if (! empty($appliedRenewalCouponCode)) {
-                $order->referral_code = $appliedRenewalCouponCode;
-                $order->referral_code_type = ReferralCodeType::RENEWAL_COUPON;
-            }
-        }
-
-        // Validate and get plan
-        try {
-            $plan = $this->getValidPlan($brand, $data['plan_id'], $promo, $renewalCoupon);
-            $order->plan_id = $plan->id;
-            $order->plan_price = $plan->price;
-        } catch (PlanNotFoundException) {
-            Log::warning('A user attempted to create an order with an invalid plan', [
-                'user_id' => $creator->id,
-                'plan_id' => $data['plan_id'],
-                'promo_code' => $appliedPromoCode,
-                'renewal_coupon_code' => $appliedRenewalCouponCode,
-            ]);
-
-            throw new InvalidOrderException('Invalid plan');
-        }
+        $this->validateOrder($order);
 
         $order->save();
 
-        Log::info('Order created', ['order' => $order->id]);
-
         // TODO: Create Stripe Checkout Session
+
+        Log::info('Order created', ['order' => $order->id]);
 
         return $order;
     }
 
     /**
-     * Check if the user has a recent paid order within 5 minutes
+     * Check if the user has a recently been paid for an order within 5 minutes.
      */
-    private function hasPurchasedRecently(User $user): bool
+    private function hasPurchasedRecently(int $recipientId): bool
     {
         $order = Order::ofStatus(OrderStatus::PAID)
-            ->ofRecipientId($user->id)
+            ->ofRecipientId($recipientId)
             ->orderByDesc('paid_at')
             ->first();
 
@@ -219,107 +108,195 @@ class OrderService
     }
 
     /**
-     * Get a valid promo code
+     * Validate the Order
      *
-     * @throws PromoNotFoundException
-     * @throws PromoExpiredException
-     * @throws PromoNotActiveException
+     *
+     * @throws InvalidOrderItemException
+     * @throws RecentPaidOrderExistsException
      */
-    private function getValidPromo(Brand $brand, ?string $promoCode, ?string $nonceCode): ?Promo
+    private function validateOrder(Order $order): void
     {
-        if (empty($promoCode)) {
-            return null;
-        }
+        // Check if the user has a recent paid order
+        if (in_array($order->type, [OrderType::NEW, OrderType::RENEWAL])) {
+            if ($this->hasPurchasedRecently($order->recipient_id)) {
+                Log::warning('The user has a recent purchase', [
+                    'user_id' => $order->recipient_id,
+                ]);
 
-        if ($promoCode === 'ORIG') {
-            if (empty($nonceCode) || ! verify_nonce_code($nonceCode)) {
-                throw new InvalidNonceCodeException;
+                throw new RecentPaidOrderExistsException;
             }
         }
 
-        $promo = Promo::ofBrand($brand)->byCode($promoCode)->first();
+        // Validate the referral code
+        $referral = null;
 
-        if ($promo === null) {
-            throw new PromoNotFoundException;
+        switch ($order->referral_code_type) {
+            case ReferralCodeType::PROMO:
+                if ($order->type !== OrderType::NEW && $order->type !== OrderType::RENEWAL) {
+                    Log::warning('The user attempted to apply a promo code for an invalid order type', [
+                        'user_id' => $order->creator_id,
+                        'promo_code' => $order->referral_code,
+                        'order_type' => $order->type->toString(),
+                    ]);
+
+                    $order->referral_code_validation_error = 'not_allowed';
+
+                    break;
+                }
+
+                try {
+                    $promo = Promo::ofBrand(Brand::from($order->brand_id))
+                        ->byCode($order->referral_code)
+                        ->firstOrFail();
+                } catch (ModelNotFoundException) {
+                    Log::warning('A user attempted to create an order with a non-existent promo code', [
+                        'user_id' => $order->creator_id,
+                        'promo_code' => $order->referral_code,
+                        'nonce_code' => $order->referral_nonce,
+                    ]);
+
+                    $order->referral_code_validation_error = 'not_found';
+
+                    break;
+                }
+
+                if ($promo->isExpired()) {
+                    Log::warning('A user attempted to create an order with an expired promo code', [
+                        'user_id' => $order->creator_id,
+                        'promo_code' => $order->referral_code,
+                        'nonce_code' => $order->referral_nonce,
+                        'expired_at' => $promo->expires_at,
+                    ]);
+
+                    $order->referral_code_validation_error = 'expired';
+
+                    break;
+                }
+
+                if (! $promo->isActive()) {
+                    Log::warning('A user attempted to create an order with an inactive promo code', [
+                        'user_id' => $order->creator_id,
+                        'promo_code' => $order->referral_code,
+                        'nonce_code' => $order->referral_nonce,
+                    ]);
+
+                    $order->referral_code_validation_error = 'not_active';
+
+                    break;
+                }
+
+                $referral = $promo;
+
+                break;
+
+            case ReferralCodeType::RENEWAL_COUPON:
+                if (empty($order->referral_code)) {
+                    Log::warning('A user attempted to create an order with an empty renewal coupon', [
+                        'user_id' => $order->creator_id,
+                    ]);
+
+                    $order->referral_code_validation_error = 'empty_code';
+
+                    break;
+                }
+
+                try {
+                    $renewalCoupon = RenewalCoupon::ofBrand(Brand::from($order->brand_id))
+                        ->byCode($order->referral_code)
+                        ->firstOrFail();
+                } catch (ModelNotFoundException) {
+                    Log::warning('A user attempted to create an order with a non-existent renewal coupon', [
+                        'user_id' => $order->creator_id,
+                        'renewal_coupon_code' => $order->referral_code,
+                    ]);
+
+                    $order->referral_code_validation_error = 'not_found';
+
+                    break;
+                }
+
+                if ($renewalCoupon->isRedeemed()) {
+                    Log::warning('A user attempted to create an order with a redeemed renewal coupon', [
+                        'user_id' => $order->creator_id,
+                        'renewal_coupon_code' => $order->referral_code,
+                        'redeemed_at' => $renewalCoupon->redeemed_at,
+                        'redeemed_by' => $renewalCoupon->authorized_redeemer_id,
+                    ]);
+
+                    $order->referral_code_validation_error = 'redeemed';
+
+                    break;
+                }
+
+                if ($renewalCoupon->isExpired()) {
+                    Log::warning('A user attempted to create an order with an expired renewal coupon', [
+                        'user_id' => $order->creator_id,
+                        'renewal_coupon_code' => $order->referral_code,
+                        'expires_at' => $renewalCoupon->expires_at,
+                    ]);
+
+                    $order->referral_code_validation_error = 'expired';
+
+                    break;
+                }
+
+                if ($renewalCoupon->redeemer_id !== $order->recipient_id) {
+                    Log::warning('A user attempted to create an order with a renewal coupon that cannot be redeemed by the recipient', [
+                        'user_id' => $order->creator_id,
+                        'renewal_coupon_code' => $order->referral_code,
+                        'expected_redeemer_id' => $renewalCoupon->redeemer_id,
+                        'actual_redeemer_id' => $order->recipient_id,
+                    ]);
+
+                    $order->referral_code_validation_error = 'invalid_redeemer';
+
+                    break;
+                }
+
+                $referral = $renewalCoupon;
+
+                break;
+
+            default:
+                break;
         }
 
-        if ($promo->isExpired()) {
-            throw new PromoExpiredException;
+        // Validate the plan
+        try {
+            $plan = Plan::ofBrand(Brand::from($order->brand_id))
+                ->findOrFail($order->item_id);
+        } catch (ModelNotFoundException) {
+            Log::warning('A user attempted to create an order with a non-existent plan', [
+                'user_id' => $order->creator_id,
+                'plan_id' => $order->item_id,
+            ]);
+
+            throw new InvalidOrderItemException('Plan not found');
         }
 
-        if (! $promo->isActive()) {
-            throw new PromoNotActiveException;
+        if ($plan->isTesting() && ! config('services.mol.testing_plans_enabled')) {
+            Log::warning('A user attempted to create an order with a disabled testing plan', [
+                'user_id' => $order->creator_id,
+                'plan_id' => $order->item_id,
+            ]);
+
+            throw new InvalidOrderItemException('Testing plans are not enabled');
         }
 
-        return $promo;
-    }
+        $allowedCampaignIds = array_unique([Campaign::default()->first()?->id, $referral?->campaign_id]);
+        $planCampaignIds = $plan->campaigns->pluck('id')->toArray();
 
-    /**
-     * Get a valid renewal coupon
-     *
-     * @throws RenewalCouponNotFoundException
-     * @throws RenewalCouponExpiredException
-     * @throws RenewalCouponRedeemedException
-     */
-    private function getValidRenewalCoupon(Brand $brand, ?string $renewalCouponCode): ?RenewalCoupon
-    {
-        if (empty($renewalCouponCode)) {
-            return null;
+        if (array_intersect($allowedCampaignIds, $planCampaignIds) === []) {
+            Log::warning('A user attempted to create an order with a plan with disallowed campaigns', [
+                'user_id' => $order->creator_id,
+                'plan_id' => $order->item_id,
+                'allowed_campaign_ids' => $allowedCampaignIds,
+                'plan_campaign_ids' => $planCampaignIds,
+            ]);
+
+            throw new InvalidOrderItemException('Plan not allowed');
         }
 
-        $renewalCoupon = RenewalCoupon::ofBrand($brand)->byCode($renewalCouponCode)->first();
-
-        if ($renewalCoupon === null) {
-            throw new RenewalCouponNotFoundException;
-        }
-
-        if ($renewalCoupon->isRedeemed()) {
-            throw new RenewalCouponRedeemedException;
-        }
-
-        if ($renewalCoupon->isExpired()) {
-            throw new RenewalCouponExpiredException;
-        }
-
-        return $renewalCoupon;
-    }
-
-    /**
-     * Get a valid plan
-     *
-     * @throws PlanNotFoundException
-     */
-    private function getValidPlan(Brand $brand, int $planId, ?Promo $promo, ?RenewalCoupon $renewalCoupon): Plan
-    {
-        $allowedCampaignIds = [Campaign::default()->first()->id];
-
-        if ($promo !== null) {
-            $allowedCampaignIds[] = $promo->campaign_id;
-        }
-
-        if ($renewalCoupon !== null) {
-            $allowedCampaignIds[] = $renewalCoupon->campaign_id;
-        }
-
-        $allowedCampaignIds = array_unique($allowedCampaignIds);
-
-        $allowedPlans = Plan::ofBrand($brand)->inCampaignIds($allowedCampaignIds)->get();
-
-        if (config('services.mol.testing_plans_enabled')) {
-            $testingPlans = Plan::ofBrand($brand)->testing()->get();
-            $allowedPlans = $allowedPlans->merge($testingPlans);
-        }
-
-        if ($allowedPlans->isEmpty()) {
-            throw new PlanNotFoundException;
-        }
-
-        $plan = $allowedPlans->firstWhere('id', $planId);
-
-        if ($plan === null) {
-            throw new PlanNotFoundException;
-        }
-
-        return $plan;
+        $order->item_price = $plan->price;
     }
 }

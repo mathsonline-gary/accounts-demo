@@ -61,10 +61,10 @@ return new class extends Migration
             $table->string('billing_email', 255)
                 ->nullable();
 
-            // Plan & pricing
-            $table->unsignedBigInteger('plan_id')
-                ->comment('The plan ID of the order');
-            $table->decimal('plan_price', 10, 2);
+            // Item & pricing
+            $table->unsignedBigInteger('item_id')
+                ->comment('The item ID of the order, i.e. plan ID');
+            $table->decimal('item_price', 10, 2);
             $table->decimal('sales_tax', 10, 2)
                 ->nullable();
 
