@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\Brand;
 use App\Enums\UserRole;
 use App\Events\CustomerCreated;
 use App\Exceptions\AccountInitializationFailedException;
@@ -11,6 +12,8 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
 use Throwable;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -76,6 +79,69 @@ class AuthService
     }
 
     /**
+     * Get the redirect URL for the OAuth provider.
+     */
+    public function getOAuthRedirectUrl(string $provider, int $brandId): string
+    {
+        return Socialite::driver($provider)
+            ->stateless()
+            ->with(['brand_id' => $brandId])
+            ->redirect()
+            ->getTargetUrl();
+    }
+
+    public function oauth(string $provider, int $brandId): string
+    {
+        // Get the user from the authorization code
+        $socialiteUser = Socialite::driver($provider)
+            ->stateless()
+            ->user();
+
+        $user = User::bySocialProviderId($provider, $socialiteUser->getId())->first();
+
+        if (! $user) {
+            $attributes = [
+                'brand_id' => $brandId,
+                'type' => UserRole::CUSTOMER,
+                'email' => $socialiteUser->getEmail(),
+                'password' => Hash::make(Str::random(16)),
+                'username' => $socialiteUser->getEmail(), // Using email as username for OAuth users
+            ];
+
+            if ($provider === 'google') {
+                $attributes['google_id'] = $socialiteUser->getId();
+                $attributes['first_name'] = $socialiteUser->user['given_name'];
+                $attributes['last_name'] = $socialiteUser->user['family_name'];
+            }
+
+            $user = $this->initializeCustomerAccount($attributes);
+        }
+
+        return JWTAuth::fromUser($user);
+    }
+
+    /**
+     * Verify the state parameter and get associated data.
+     */
+    private function verifyState(string $state): ?array
+    {
+        $data = cache()->get("oauth_state_{$state}");
+
+        if (! $data) {
+            return null;
+        }
+
+        // Delete the state from cache
+        //        cache()->forget("oauth_state_{$state}");
+
+        if (! is_array($data) || ! isset($data['brand_id']) || ! in_array((int) $data['brand_id'], array_column(Brand::cases(), 'value'))) {
+            return null;
+        }
+
+        return $data;
+    }
+
+    /**
      * Initialize a customer account.
      *
      * @param array{
@@ -102,6 +168,7 @@ class AuthService
     {
         $payload = Arr::only($payload, [
             'brand_id',
+            'google_id',
             'username',
             'first_name',
             'last_name',
@@ -127,19 +194,19 @@ class AuthService
                     'role_id' => UserRole::CUSTOMER->value,
                     // 'stripe_customer_id' => $stripeCustomer->id,
                     'username' => $payload['username'],
-                    'first_name' => $payload['first_name'],
-                    'last_name' => $payload['last_name'],
+                    'first_name' => $payload['first_name'] ?? null,
+                    'last_name' => $payload['last_name'] ?? null,
                     'email' => $payload['email'],
                     'password' => Hash::make($payload['password']),
-                    'home_phone' => $payload['home_phone'],
-                    'mobile_phone' => $payload['mobile_phone'],
-                    'address_line_1' => $payload['address_line_1'],
-                    'address_line_2' => $payload['address_line_2'],
-                    'address_city' => $payload['address_city'],
-                    'address_state' => $payload['address_state'],
-                    'address_postal_code' => $payload['address_postal_code'],
-                    'address_country' => $payload['address_country'],
-                    'ip_address' => $payload['ip_address'],
+                    'home_phone' => $payload['home_phone'] ?? null,
+                    'mobile_phone' => $payload['mobile_phone'] ?? null,
+                    'address_line_1' => $payload['address_line_1'] ?? null,
+                    'address_line_2' => $payload['address_line_2'] ?? null,
+                    'address_city' => $payload['address_city'] ?? null,
+                    'address_state' => $payload['address_state'] ?? null,
+                    'address_postal_code' => $payload['address_postal_code'] ?? null,
+                    'address_country' => $payload['address_country'] ?? null,
+                    'ip_address' => $payload['ip_address'] ?? null,
                 ]);
 
                 event(new CustomerCreated($user));

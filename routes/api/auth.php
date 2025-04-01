@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedTokenController;
 use App\Http\Controllers\Auth\AuthenticatedUserController;
+use App\Http\Controllers\Auth\OAuthTokenController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,4 +17,11 @@ Route::prefix('auth')
             Route::post('/logout', [AuthenticatedTokenController::class, 'destroy'])->name('logout');
             Route::post('/refresh', [AuthenticatedTokenController::class, 'refresh'])->name('refresh');
         });
+    });
+
+Route::prefix('oauth')
+    ->name('oauth.')
+    ->group(function () {
+        Route::get('/{provider}', [OAuthTokenController::class, 'index'])->name('index');
+        Route::post('/{provider}', [OAuthTokenController::class, 'store'])->name('store');
     });

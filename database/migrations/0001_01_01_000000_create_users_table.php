@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedInteger('brand_id');
             $table->unsignedTinyInteger('role_id')
                 ->comment('1: Admin, 2: Student, 3: Teacher, 4: Customer');
+            $table->string('google_id')->nullable();
             $table->string('first_name', 50);
             $table->string('last_name', 50);
             $table->string('email', 255)->nullable()->unique();

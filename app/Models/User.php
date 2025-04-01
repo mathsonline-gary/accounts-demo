@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,7 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'brand_id',
         'role_id',
+        'google_id',
         'first_name',
         'last_name',
         'email',
@@ -81,6 +83,22 @@ class User extends Authenticatable implements JWTSubject
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class, 'brand_id', 'id');
+    }
+
+    /**
+     * Scope a query to only include users by social provider ID.
+     */
+    public function scopeBySocialProviderId(Builder $query, string $provider, string $id): void
+    {
+        $query->where($provider.'_id', $id);
+    }
+
+    /**
+     * Scope a query to only include users by email.
+     */
+    public function scopeByEmail(Builder $query, string $email): void
+    {
+        $query->where('email', $email);
     }
 
     /**
