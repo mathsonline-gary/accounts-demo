@@ -29,7 +29,10 @@ class OAuthTokenController extends Controller
         // Validate the provider
         if (! in_array($provider, ['google'])) {
             return response()->json([
-                'message' => 'Invalid social provider.',
+                'message' => 'Invalid OAuth provider.',
+                'errors' => [
+                    'provider' => ['The provider is invalid.'],
+                ],
             ], 400);
         }
 
@@ -50,7 +53,10 @@ class OAuthTokenController extends Controller
     {
         if (! in_array($provider, ['google'])) {
             return response()->json([
-                'message' => 'Invalid social provider.',
+                'message' => 'Invalid OAuth provider.',
+                'errors' => [
+                    'provider' => ['The provider is invalid.'],
+                ],
             ], 400);
         }
 
