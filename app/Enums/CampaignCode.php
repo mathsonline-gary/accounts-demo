@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Traits\HasEnumValues;
+
 enum CampaignCode: string
 {
+    use HasEnumValues;
+
     case REGULAR = 'REGULAR';
     case ORIGINAL = 'ORIGINAL';
     case PLUS6 = '12PLUS6';

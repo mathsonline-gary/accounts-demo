@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Traits\HasEnumValues;
+
 enum Brand: int
 {
+    use HasEnumValues;
+
     case MATHSONLINE_AU = 1;
     case CONQUERMATHS_UK = 2;
     case MATHSBUDDY_NZ = 3;

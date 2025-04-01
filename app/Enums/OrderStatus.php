@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Traits\HasEnumValues;
+
 enum OrderStatus: string
 {
+    use HasEnumValues;
+
     case CREATING = 'creating'; // The order is being created and is not ready for checkout.
 
     case READY = 'ready'; // The order is created and ready for checkout.

@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
+use App\Traits\HasEnumValues;
+
 enum OrderType: int
 {
+    use HasEnumValues;
+
     case NEW = 1;
     case RENEWAL = 2;
     case TRIAL = 3;

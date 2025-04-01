@@ -232,3 +232,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Seeder data
+/database/seeders/data

@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
-use App\Enums\Brand;
+use App\Enums\ExternalService;
 use App\Enums\UserRole;
 use App\Events\CustomerCreated;
 use App\Exceptions\AccountInitializationFailedException;
 use App\Models\User;
+use App\Models\UserExternalAccount;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -66,14 +67,12 @@ class AuthService
         ]);
 
         if ($payload['type'] === 'customer') {
-            $user = $this->initializeCustomerAccount($payload);
+            $user = $this->initializeUserAccount($payload);
 
             event(new Registered($user));
 
             return JWTAuth::fromUser($user);
         }
-
-        // TODO: register school account
 
         return null;
     }
@@ -90,6 +89,9 @@ class AuthService
             ->getTargetUrl();
     }
 
+    /**
+     * Authenticate a user via OAuth.
+     */
     public function oauth(string $provider, int $brandId): string
     {
         // Get the user from the authorization code
@@ -97,9 +99,9 @@ class AuthService
             ->stateless()
             ->user();
 
-        $user = User::bySocialProviderId($provider, $socialiteUser->getId())->first();
+        $userSocialAccount = UserExternalAccount::byServiceAccountId($provider, $socialiteUser->getId())->first();
 
-        if (! $user) {
+        if (! $userSocialAccount) {
             $attributes = [
                 'brand_id' => $brandId,
                 'type' => UserRole::CUSTOMER,
@@ -109,40 +111,32 @@ class AuthService
             ];
 
             if ($provider === 'google') {
-                $attributes['google_id'] = $socialiteUser->getId();
                 $attributes['first_name'] = $socialiteUser->user['given_name'];
                 $attributes['last_name'] = $socialiteUser->user['family_name'];
             }
 
-            $user = $this->initializeCustomerAccount($attributes);
+            $user = $this->initializeUserAccount($attributes);
+
+            $userSocialAccount = UserExternalAccount::create([
+                'user_id' => $user->id,
+                'service' => ExternalService::from($provider),
+                'service_account_id' => $socialiteUser->getId(),
+            ]);
+
+            return JWTAuth::fromUser($user);
         }
+
+        $user = $userSocialAccount->user;
+
+        // TODO: check if the user is still active, if not, throw an exception
 
         return JWTAuth::fromUser($user);
     }
 
     /**
-     * Verify the state parameter and get associated data.
-     */
-    private function verifyState(string $state): ?array
-    {
-        $data = cache()->get("oauth_state_{$state}");
-
-        if (! $data) {
-            return null;
-        }
-
-        // Delete the state from cache
-        //        cache()->forget("oauth_state_{$state}");
-
-        if (! is_array($data) || ! isset($data['brand_id']) || ! in_array((int) $data['brand_id'], array_column(Brand::cases(), 'value'))) {
-            return null;
-        }
-
-        return $data;
-    }
-
-    /**
-     * Initialize a customer account.
+     * Initialize a user account.
+     *
+     * Apart from the user, this method also creates other related models according to the type of user.
      *
      * @param array{
      *     brand_id: int,
@@ -164,7 +158,7 @@ class AuthService
      *
      * @throws AccountInitializationFailedException
      */
-    private function initializeCustomerAccount(array $payload): User
+    private function initializeUserAccount(array $payload): User
     {
         $payload = Arr::only($payload, [
             'brand_id',
@@ -187,12 +181,9 @@ class AuthService
 
         try {
             return DB::transaction(function () use ($payload) {
-                // TODO: upsert Stripe customer.
-
                 $user = User::create([
                     'brand_id' => $payload['brand_id'],
                     'role_id' => UserRole::CUSTOMER->value,
-                    // 'stripe_customer_id' => $stripeCustomer->id,
                     'username' => $payload['username'],
                     'first_name' => $payload['first_name'] ?? null,
                     'last_name' => $payload['last_name'] ?? null,
@@ -215,6 +206,8 @@ class AuthService
 
                 return $user;
             }, 5);
+
+            // TODO: dispatch event: UserAccountInitialized
         } catch (Throwable $e) {
             Log::error("Failed to initialize customer account: {$e->getMessage()}", [
                 'payload' => $payload,

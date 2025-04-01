@@ -41,6 +41,20 @@ return new class extends Migration
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
+
+        Schema::create('user_external_services', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedInteger('user_id');
+            $table->string('service')
+                ->comment('The external service that the user is linked to. e.g. "google", "facebook", etc.');
+            $table->string('service_account_id')
+                ->comment('The ID of the user on the external service. e.g. Google User ID, Facebook User ID, etc.');
+
+            $table->unique(['service', 'service_account_id']);
+            $table->index('user_id');
+            $table->index('service');
+            $table->index('service_account_id');
+        });
     }
 
     /**
@@ -50,5 +64,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('user_external_services');
     }
 };
