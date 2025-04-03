@@ -58,6 +58,8 @@ components:
     Order:
       type: object
       properties:
+        id:
+          type: integer
         uuid:
           type: string
         type:
@@ -123,10 +125,41 @@ components:
               type: string
             email:
               type: string
-            home_phone:
+            phone:
+              type: object
+              properties:
+                home:
+                  type: string
+                mobile:
+                  type: string
+        amount:
+          type: object
+          properties:
+            item:
+              type: float
+            sales_tax:
+              type: float
+            total:
+              type: float
+            currency:
               type: string
-            mobile_phone:
+        payment:
+          type: object
+          properties:
+            paid_at:
               type: string
+              format: date-time
+              nullable: true
+            paid_via:
+              type: string
+              enum: [Stripe, PayPal]
+              nullable: true
+            link:
+              type: string
+              nullable: true
+        created_at:
+          type: string
+          format: date-time
 
     Plan:
       type: object
@@ -565,13 +598,12 @@ paths:
                   enum: [1, 2, 3, 4, 5, 6]
                 item_id:
                   type: integer
-                referral_code:
+                reference_code:
                   type: string
-                referral_code_type:
+                reference_code_type:
                   type: integer
                   enum: [1, 2, 3, 4]
-                referral_nonce:
-                  type: string
+
       responses:
         "200":
           description: Order created successfully
@@ -651,9 +683,9 @@ paths:
                   enum: [creating, ready, paid, cancelled]
                 item_id:
                   type: integer
-                referral_code:
+                reference_code:
                   type: string
-                referral_code_type:
+                reference_code_type:
                   type: integer
                   enum: [1, 2, 3, 4]
       responses:

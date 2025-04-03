@@ -3,10 +3,8 @@
 namespace App\Policies;
 
 use App\Enums\OrderType;
-use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Illuminate\Auth\Access\Response;
 
 class OrderPolicy
 {
@@ -15,20 +13,19 @@ class OrderPolicy
     /**
      * Determine whether the user can create an order.
      */
-    public function create(User $user, OrderType $type): Response
+    public function create(?User $user, OrderType $type): bool
     {
-        if ($user->role !== UserRole::CUSTOMER) {
-            return Response::deny('Only customers can create orders.');
+        switch ($type) {
+            case OrderType::NEW:
+            case OrderType::RENEWAL:
+            case OrderType::TRIAL:
+            case OrderType::COUPON_REDEMPTION:
+            case OrderType::GIFT:
+                return $user === null || $user->isCustomer();
+            case OrderType::OFFLINE:
+                return $user?->isAdmin() ?? false;
+            default:
+                return false;
         }
-
-        if (! in_array($type, [
-            OrderType::NEW,
-            OrderType::RENEWAL,
-            OrderType::COUPON_REDEMPTION,
-        ])) {
-            return Response::deny('Invalid order type for customer.');
-        }
-
-        return Response::allow();
     }
 }

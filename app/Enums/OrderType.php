@@ -18,12 +18,12 @@ enum OrderType: int
     public function toString(): string
     {
         return match ($this) {
-            self::NEW => 'New',
-            self::RENEWAL => 'Renewal',
-            self::TRIAL => 'Trial',
-            self::COUPON_REDEMPTION => 'Coupon Redemption',
-            self::GIFT => 'Gift',
-            self::OFFLINE => 'Offline',
+            self::NEW => 'new',
+            self::RENEWAL => 'renewal',
+            self::TRIAL => 'trial',
+            self::COUPON_REDEMPTION => 'coupon_redemption',
+            self::GIFT => 'gift',
+            self::OFFLINE => 'offline',
         };
     }
 }

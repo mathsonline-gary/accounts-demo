@@ -2,63 +2,110 @@
 
 namespace App\Models;
 
+use App\Enums\Brand;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
-use App\Enums\ReferralCodeType;
+use App\Enums\PaymentGateway;
+use App\Enums\ReferenceCodeType;
+use App\Traits\HasBrand;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Order extends Model
 {
+    use HasBrand;
+
     protected $fillable = [
         'uuid',
         'brand_id',
-        'type',
-        'stripe_checkout_session_id',
-        'stripe_invoice_id',
-        'stripe_subscription_id',
-        'stripe_checkout_session_client_secret',
+        'type_id',
         'creator_id',
         'recipient_id',
         'recipient_email',
         'recipient_first_name',
         'recipient_last_name',
-        'billing_address_1',
-        'billing_address_2',
+        'billing_address_line_1',
+        'billing_address_line_2',
         'billing_city',
         'billing_state',
         'billing_postal_code',
         'billing_country',
-        'billing_phone',
-        'billing_name',
-        'billing_email',
         'item_id',
-        'item_price',
-        'sales_tax',
-        'referral_code',
-        'referral_code_type',
-        'referral_code_validation_error',
+        'amount_subtotal',
+        'amount_tax',
+        'reference_code',
+        'reference_code_type_id',
+        'reference_code_validation_error',
         'status',
         'paid_at',
+        'paid_via',
         'is_hidden',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     */
     public function casts(): array
     {
         return [
             'brand_id' => 'integer',
-            'recipient_id' => 'integer',
+            'type_id' => 'integer',
             'creator_id' => 'integer',
+            'recipient_id' => 'integer',
             'item_id' => 'integer',
-            'item_price' => 'float',
-            'sales_tax' => 'float',
-            'type' => OrderType::class,
+            'amount_subtotal' => 'float',
+            'amount_tax' => 'float',
             'status' => OrderStatus::class,
-            'referral_code_type' => ReferralCodeType::class,
+            'reference_code_type_id' => 'integer',
             'paid_at' => 'datetime',
+            'paid_via' => PaymentGateway::class,
             'is_hidden' => 'boolean',
         ];
+    }
+
+    /**
+     * Interact with the brand attribute.
+     */
+    public function brand(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value, array $attributes) => Brand::from($attributes['brand_id']),
+            set: null,
+        );
+    }
+
+    /**
+     * Interact with the type attribute.
+     */
+    public function type(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value, array $attributes) => OrderType::from($attributes['type_id']),
+            set: null,
+        );
+    }
+
+    /**
+     * Interact with the reference code type attribute.
+     */
+    public function referenceCodeType(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value, array $attributes) => ReferenceCodeType::from($attributes['reference_code_type_id']),
+            set: null,
+        );
+    }
+
+    /**
+     * Interact with the amount total attribute.
+     */
+    public function amountTotal(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->amount_subtotal + $this->amount_tax ?? 0,
+        );
     }
 
     /**
@@ -86,26 +133,26 @@ class Order extends Model
     }
 
     /**
-     * Scope a query to only include orders of a given status.
+     * Scope a query to only include orders by status.
      */
-    public function scopeOfStatus(Builder $query, OrderStatus $status): void
+    public function scopeByStatus(Builder $query, OrderStatus $status): void
     {
         $query->where('status', $status);
     }
 
     /**
-     * Scope a query to only include orders of a given type.
+     * Scope a query to only include orders by type.
      */
     public function scopeOfType(Builder $query, OrderType $type): void
     {
-        $query->where('type', $type);
+        $query->where('type_id', $type->value);
     }
 
     /**
-     * Scope a query to only include orders of a given recipient ID.
+     * Scope a query to only include orders of a given recipient email.
      */
-    public function scopeOfRecipientId(Builder $query, int $recipientId): void
+    public function scopeByRecipientEmail(Builder $query, string $recipientEmail): void
     {
-        $query->where('recipient_id', $recipientId);
+        $query->where('recipient_email', $recipientEmail);
     }
 }

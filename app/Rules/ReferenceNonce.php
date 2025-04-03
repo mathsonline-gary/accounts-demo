@@ -5,7 +5,7 @@ namespace App\Rules;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
-class ReferralNonce implements ValidationRule
+class ReferenceNonce implements ValidationRule
 {
     /**
      * Run the validation rule.

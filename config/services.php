@@ -41,6 +41,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'stripe' => [
+        'url' => env('APP_ENV') === 'production' ? 'https://dashboard.stripe.com' : 'https://dashboard.stripe.com/test',
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | First Party Services

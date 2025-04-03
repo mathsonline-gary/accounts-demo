@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderType;
-use App\Enums\ReferralCodeType;
 use App\Exceptions\InvalidOrderItemException;
 use App\Exceptions\RecentPaidOrderExistsException;
 use App\Http\Requests\Orders\StoreOrderRequest;
+use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class OrderController extends Controller
 {
@@ -19,13 +21,19 @@ class OrderController extends Controller
 
     public function store(StoreOrderRequest $request): JsonResponse
     {
+        Gate::authorize('create', [Order::class, OrderType::from($request->integer('type_id'))]);
+
         try {
             $order = $this->orderService->createOrder([
-                'type' => OrderType::from($request->integer('type')),
+                'brand_id' => $request->integer('brand_id'),
+                'type_id' => $request->integer('type_id'),
                 'item_id' => $request->integer('item_id'),
-                'creator' => $request->user(),
-                'referral_code' => $request->input('referral_code'),
-                'referral_code_type' => ReferralCodeType::from($request->integer('referral_code_type')),
+                'creator_id' => $request->user?->id,
+                'recipient_email' => $request->input('recipient_email'),
+                'recipient_first_name' => $request->input('recipient_first_name'),
+                'recipient_last_name' => $request->input('recipient_last_name'),
+                'reference_code' => $request->input('reference_code'),
+                'reference_code_type_id' => $request->integer('reference_code_type_id'),
             ]);
         } catch (InvalidOrderItemException) {
             return response()->json([
@@ -33,15 +41,15 @@ class OrderController extends Controller
                 'errors' => [
                     'item_id' => 'The order item is invalid.',
                 ],
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (RecentPaidOrderExistsException) {
             return response()->json([
                 'message' => 'The user has made a purchase recently.',
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (AuthorizationException) {
             return response()->json([
                 'message' => 'The user is not authorized to create this order.',
-            ], 403);
+            ], Response::HTTP_FORBIDDEN);
         }
 
         return response()->json([

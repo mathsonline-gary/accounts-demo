@@ -93,52 +93,49 @@ namespace App\Models{
  * @property int $id
  * @property string $uuid
  * @property int $brand_id
- * @property \App\Enums\OrderType $type 1 = new purchase, 2 = renewal, 3 = trial, 4 = coupon redemption, 5 = gift, 6 = offline
- * @property string|null $stripe_checkout_session_id
- * @property string|null $stripe_invoice_id
- * @property string|null $stripe_subscription_id
- * @property string|null $stripe_checkout_session_client_secret
- * @property int $creator_id The ID of the user who created the order
- * @property int $recipient_id The user ID of the recipient
- * @property string $recipient_email The snapshot of the recipient email
- * @property string $recipient_first_name The snapshot of the recipient first name
- * @property string $recipient_last_name The snapshot of the recipient last name
- * @property string|null $billing_address_1
- * @property string|null $billing_address_2
+ * @property int $type_id 1 = new purchase, 2 = renewal, 3 = trial, 4 = coupon redemption, 5 = gift, 6 = offline
+ * @property int|null $creator_id The ID of the user who created the order.
+ * @property int|null $recipient_id The user ID of the recipient.
+ * @property string $recipient_email The snapshot of the recipient email.
+ * @property string|null $recipient_first_name The snapshot of the recipient first name.
+ * @property string|null $recipient_last_name The snapshot of the recipient last name.
+ * @property string|null $billing_address_line_1
+ * @property string|null $billing_address_line_2
  * @property string|null $billing_city
  * @property string|null $billing_state
  * @property string|null $billing_postal_code
  * @property string|null $billing_country
- * @property string|null $billing_phone
- * @property string|null $billing_name
- * @property string|null $billing_email
- * @property int $item_id The item ID of the order, i.e. plan ID
- * @property string $item_price
- * @property float|null $sales_tax
- * @property string|null $referral_code
- * @property \App\Enums\ReferralCodeType|null $referral_code_type 1: Promo, 2: Renewal Coupon, 3: Coupon, 4: Offline Sales Code
- * @property string|null $referral_code_validation_error The reason the referral code is invalid. Null if the referral code is valid or not provided.
+ * @property int $item_id The item ID of the order, i.e. plan ID.
+ * @property float $amount_subtotal The amount of the order before tax is applied.
+ * @property float|null $amount_tax The amount of tax applied to the order.
+ * @property string|null $reference_code
+ * @property int|null $reference_code_type_id 1: Promo code, 2: Renewal coupon code, 3: Coupon code, 4: Offline sales code
+ * @property string|null $reference_code_validation_error The reason the reference code is invalid. Null if the reference code is valid or not provided.
  * @property \App\Enums\OrderStatus $status
  * @property \Illuminate\Support\Carbon|null $paid_at
+ * @property \App\Enums\PaymentGateway|null $paid_via The payment gateway used to pay for the order
  * @property bool $is_hidden
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read mixed $amount_total
+ * @property \App\Enums\Brand $brand
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\Plan|null $item
  * @property-read \App\Models\User|null $recipient
+ * @property-read mixed $reference_code_type
+ * @property-read mixed $type
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byRecipientEmail(string $recipientEmail)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byStatus(\App\Enums\OrderStatus $status)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order ofRecipientId(int $recipientId)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order ofStatus(\App\Enums\OrderStatus $status)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order ofType(\App\Enums\OrderType $type)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingAddress1($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingAddress2($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereAmountSubtotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereAmountTax($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingAddressLine1($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingAddressLine2($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingCity($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingCountry($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingEmail($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingPhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingPostalCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingState($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBrandId($value)
@@ -147,22 +144,17 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereIsHidden($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereItemId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereItemPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePaidAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePaidVia($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereRecipientEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereRecipientFirstName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereRecipientId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereRecipientLastName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereReferralCode($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereReferralCodeType($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereReferralCodeValidationError($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSalesTax($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereReferenceCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereReferenceCodeTypeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereReferenceCodeValidationError($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStripeCheckoutSessionClientSecret($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStripeCheckoutSessionId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStripeInvoiceId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStripeSubscriptionId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTypeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUuid($value)
  */
@@ -296,6 +288,60 @@ namespace App\Models{
  * 
  *
  * @property int $id
+ * @property int $order_id
+ * @property string $stripe_checkout_session_id The ID of the Stripe checkout session
+ * @property string $stripe_checkout_session_client_secret The client secret of the Stripe checkout session
+ * @property string|null $stripe_customer_id The ID of the Stripe customer created from the checkout session. Null if the checkout session is not for a customer.
+ * @property string|null $stripe_subscription_id The ID of the Stripe subscription created from the checkout session. Null if the checkout session is not for a subscription.
+ * @property string|null $stripe_invoice_id The ID of the Stripe invoice created from the checkout session.
+ * @property string $status The status of the Stripe checkout session, one of "open", "complete", or "expired".
+ * @property string $payment_status The payment status of the Stripe checkout session, one of "unpaid", "paid", or "no_payment_required".
+ * @property \Illuminate\Support\Carbon $expires_at The date and time the Stripe checkout session expires.
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Order|null $order
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereExpiresAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereOrderId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout wherePaymentStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereStripeCheckoutSessionClientSecret($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereStripeCheckoutSessionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereStripeCustomerId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereStripeInvoiceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereStripeSubscriptionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripeCheckout whereUpdatedAt($value)
+ */
+	class StripeCheckout extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * 
+ *
+ * @property int $id
+ * @property int $order_id
+ * @property string $stripe_payment_intent_id The ID of the Stripe payment intent.
+ * @property-read \App\Models\Order|null $order
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripePayment newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripePayment newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripePayment query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripePayment whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripePayment whereOrderId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StripePayment whereStripePaymentIntentId($value)
+ */
+	class StripePayment extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * 
+ *
+ * @property int $id
  * @property int $brand_id
  * @property int $role_id 1: Admin, 2: Student, 3: Teacher, 4: Customer
  * @property string $first_name
@@ -309,9 +355,13 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Brand|null $brand
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\UserExternalAccount> $externalAccounts
+ * @property-read int|null $external_accounts_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
  * @property \App\Enums\UserRole $role
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User byEmail(string $email)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User bySocialProviderId(string $provider, string $id)
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
@@ -331,5 +381,21 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUsername($value)
  */
 	class User extends \Eloquent implements \Tymon\JWTAuth\Contracts\JWTSubject {}
+}
+
+namespace App\Models{
+/**
+ * 
+ *
+ * @property \App\Enums\ExternalService $provider
+ * @property-read \App\Models\User|null $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserExternalAccount byProvider(\App\Enums\ExternalService $provider)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserExternalAccount byProviderUserId(\App\Enums\ExternalService $provider, string $providerUserId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserExternalAccount newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserExternalAccount newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserExternalAccount ofUser(int $userId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserExternalAccount query()
+ */
+	class UserExternalAccount extends \Eloquent {}
 }
 

@@ -16,10 +16,10 @@ enum UserRole: int
     public function toString(): string
     {
         return match ($this) {
-            self::ADMIN => 'Admin',
-            self::STUDENT => 'Student',
-            self::TEACHER => 'Teacher',
-            self::CUSTOMER => 'Customer',
+            self::ADMIN => 'admin',
+            self::STUDENT => 'student',
+            self::TEACHER => 'teacher',
+            self::CUSTOMER => 'customer',
         };
     }
 }

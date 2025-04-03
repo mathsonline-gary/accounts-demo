@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Enums\Brand;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
-use App\Enums\ReferralCodeType;
+use App\Enums\ReferenceCodeType;
 use App\Exceptions\InvalidOrderItemException;
 use App\Exceptions\RecentPaidOrderExistsException;
 use App\Models\Campaign;
@@ -26,11 +26,15 @@ class OrderService
      * Create a new order
      *
      * @param array{
-     *     type: OrderType,
+     *     brand_id: int,
+     *     type_id: int,
      *     item_id: int,
-     *     creator: User,
-     *     referral_code: string|null,
-     *     referral_code_type: ReferralCodeType|null,
+     *     creator_id: int|null,
+     *     recipient_email: string,
+     *     recipient_first_name: string,
+     *     recipient_last_name: string,
+     *     reference_code: string|null,
+     *     reference_code_type_id: int|null,
      * } $data
      *
      * @throws RecentPaidOrderExistsException
@@ -40,46 +44,36 @@ class OrderService
     public function createOrder(array $data): Order
     {
         $data = Arr::only($data, [
-            'type',
+            'brand_id',
+            'type_id',
             'item_id',
-            'creator',
-            'referral_code',
-            'referral_code_type',
+            'creator_id',
+            'recipient_email',
+            'recipient_first_name',
+            'recipient_last_name',
+            'reference_code',
+            'reference_code_type_id',
         ]);
 
-        $creator = $data['creator'];
-
-        // Authorize the creator to create an order by order type
-        if (! $creator->can('create', [Order::class, $data['type']])) {
-            Log::warning('The user is unauthorized to create the order type', [
-                'user_id' => $creator->id,
-                'user_role' => $creator->role->toString(),
-                'order_type' => $data['type']->toString(),
-            ]);
-
-            throw new AuthorizationException('You are not authorized to create this type of order');
-        }
+        $creator = $data['creator_id'] ? User::find($data['creator_id']) : null;
 
         $order = new Order([
-            'brand_id' => $creator->brand_id,
+            'brand_id' => $data['brand_id'],
             'uuid' => Str::uuid()->toString(),
-            'type' => $data['type'],
-            'creator_id' => $creator->id,
-            'recipient_id' => $creator->id,
-            'recipient_email' => $creator->email,
-            'recipient_first_name' => $creator->first_name,
-            'recipient_last_name' => $creator->last_name,
+            'type_id' => $data['type_id'],
+            'creator_id' => $creator?->id,
+            'recipient_email' => $data['recipient_email'],
+            'recipient_first_name' => $data['recipient_first_name'],
+            'recipient_last_name' => $data['recipient_last_name'],
             'item_id' => $data['item_id'],
-            'status' => OrderStatus::CREATING,
-            'referral_code' => $data['referral_code'],
-            'referral_code_type' => $data['referral_code_type'],
+            'status' => OrderStatus::PENDING,
+            'reference_code' => $data['reference_code'],
+            'reference_code_type_id' => $data['reference_code_type_id'],
         ]);
 
         $this->validateOrder($order);
 
         $order->save();
-
-        // TODO: Create Stripe Checkout Session
 
         Log::info('Order created', ['order' => $order->id]);
 
@@ -89,10 +83,10 @@ class OrderService
     /**
      * Check if the user has a recently been paid for an order within 5 minutes.
      */
-    private function hasPurchasedRecently(int $recipientId): bool
+    private function hasPurchasedRecently(string $recipientEmail): bool
     {
-        $order = Order::ofStatus(OrderStatus::PAID)
-            ->ofRecipientId($recipientId)
+        $order = Order::byStatus(OrderStatus::PAID)
+            ->byRecipientEmail($recipientEmail)
             ->orderByDesc('paid_at')
             ->first();
 
@@ -118,7 +112,7 @@ class OrderService
     {
         // Check if the user has a recent paid order
         if (in_array($order->type, [OrderType::NEW, OrderType::RENEWAL])) {
-            if ($this->hasPurchasedRecently($order->recipient_id)) {
+            if ($this->hasPurchasedRecently($order->recipient_email)) {
                 Log::warning('The user has a recent purchase', [
                     'user_id' => $order->recipient_id,
                 ]);
@@ -127,133 +121,121 @@ class OrderService
             }
         }
 
-        // Validate the referral code
-        $referral = null;
+        // Validate the reference code
+        $reference = null;
 
-        switch ($order->referral_code_type) {
-            case ReferralCodeType::PROMO:
+        switch ($order->reference_code_type) {
+            case ReferenceCodeType::PROMO:
                 if ($order->type !== OrderType::NEW && $order->type !== OrderType::RENEWAL) {
-                    Log::warning('The user attempted to apply a promo code for an invalid order type', [
-                        'user_id' => $order->creator_id,
-                        'promo_code' => $order->referral_code,
+                    Log::warning('Promo code is applied to an invalid order type', [
+                        'promo_code' => $order->reference_code,
                         'order_type' => $order->type->toString(),
                     ]);
 
-                    $order->referral_code_validation_error = 'not_allowed';
+                    $order->reference_code_validation_error = 'not_allowed';
 
                     break;
                 }
 
                 try {
                     $promo = Promo::ofBrand(Brand::from($order->brand_id))
-                        ->byCode($order->referral_code)
+                        ->byCode($order->reference_code)
                         ->firstOrFail();
                 } catch (ModelNotFoundException) {
-                    Log::warning('A user attempted to create an order with a non-existent promo code', [
-                        'user_id' => $order->creator_id,
-                        'promo_code' => $order->referral_code,
-                        'nonce_code' => $order->referral_nonce,
+                    Log::warning('Promo code does not exist', [
+                        'promo_code' => $order->reference_code,
                     ]);
 
-                    $order->referral_code_validation_error = 'not_found';
+                    $order->reference_code_validation_error = 'not_found';
 
                     break;
                 }
 
                 if ($promo->isExpired()) {
-                    Log::warning('A user attempted to create an order with an expired promo code', [
-                        'user_id' => $order->creator_id,
-                        'promo_code' => $order->referral_code,
-                        'nonce_code' => $order->referral_nonce,
+                    Log::warning('Promo code is expired', [
+                        'promo_code' => $order->reference_code,
                         'expired_at' => $promo->expires_at,
                     ]);
 
-                    $order->referral_code_validation_error = 'expired';
+                    $order->reference_code_validation_error = 'expired';
 
                     break;
                 }
 
                 if (! $promo->isActive()) {
-                    Log::warning('A user attempted to create an order with an inactive promo code', [
-                        'user_id' => $order->creator_id,
-                        'promo_code' => $order->referral_code,
-                        'nonce_code' => $order->referral_nonce,
+                    Log::warning('Promo code is not active', [
+                        'promo_code' => $order->reference_code,
                     ]);
 
-                    $order->referral_code_validation_error = 'not_active';
+                    $order->reference_code_validation_error = 'not_active';
 
                     break;
                 }
 
-                $referral = $promo;
+                $reference = $promo;
 
                 break;
 
-            case ReferralCodeType::RENEWAL_COUPON:
-                if (empty($order->referral_code)) {
-                    Log::warning('A user attempted to create an order with an empty renewal coupon', [
+            case ReferenceCodeType::RENEWAL_COUPON:
+                if (empty($order->reference_code)) {
+                    Log::warning('Renewal coupon is empty', [
                         'user_id' => $order->creator_id,
                     ]);
 
-                    $order->referral_code_validation_error = 'empty_code';
+                    $order->reference_code_validation_error = 'empty_code';
 
                     break;
                 }
 
                 try {
                     $renewalCoupon = RenewalCoupon::ofBrand(Brand::from($order->brand_id))
-                        ->byCode($order->referral_code)
+                        ->byCode($order->reference_code)
                         ->firstOrFail();
                 } catch (ModelNotFoundException) {
-                    Log::warning('A user attempted to create an order with a non-existent renewal coupon', [
-                        'user_id' => $order->creator_id,
-                        'renewal_coupon_code' => $order->referral_code,
+                    Log::warning('Renewal coupon does not exist', [
+                        'renewal_coupon_code' => $order->reference_code,
                     ]);
 
-                    $order->referral_code_validation_error = 'not_found';
+                    $order->reference_code_validation_error = 'not_found';
 
                     break;
                 }
 
                 if ($renewalCoupon->isRedeemed()) {
-                    Log::warning('A user attempted to create an order with a redeemed renewal coupon', [
-                        'user_id' => $order->creator_id,
-                        'renewal_coupon_code' => $order->referral_code,
+                    Log::warning('Renewal coupon is redeemed', [
+                        'renewal_coupon_code' => $order->reference_code,
                         'redeemed_at' => $renewalCoupon->redeemed_at,
                         'redeemed_by' => $renewalCoupon->authorized_redeemer_id,
                     ]);
 
-                    $order->referral_code_validation_error = 'redeemed';
+                    $order->reference_code_validation_error = 'redeemed';
 
                     break;
                 }
 
                 if ($renewalCoupon->isExpired()) {
-                    Log::warning('A user attempted to create an order with an expired renewal coupon', [
-                        'user_id' => $order->creator_id,
-                        'renewal_coupon_code' => $order->referral_code,
+                    Log::warning('Renewal coupon is expired', [
+                        'renewal_coupon_code' => $order->reference_code,
                         'expires_at' => $renewalCoupon->expires_at,
                     ]);
 
-                    $order->referral_code_validation_error = 'expired';
+                    $order->reference_code_validation_error = 'expired';
 
                     break;
                 }
 
                 if ($renewalCoupon->redeemer_id !== $order->recipient_id) {
-                    Log::warning('A user attempted to create an order with a renewal coupon that cannot be redeemed by the recipient', [
-                        'user_id' => $order->creator_id,
-                        'renewal_coupon_code' => $order->referral_code,
-                        'expected_redeemer_id' => $renewalCoupon->redeemer_id,
-                        'actual_redeemer_id' => $order->recipient_id,
+                    Log::warning('Renewal coupon is not redeemable by the recipient', [
+                        'renewal_coupon_code' => $order->reference_code,
+                        'recipient_email' => $order->recipient_email,
                     ]);
 
-                    $order->referral_code_validation_error = 'invalid_redeemer';
+                    $order->reference_code_validation_error = 'invalid_redeemer';
 
                     break;
                 }
 
-                $referral = $renewalCoupon;
+                $reference = $renewalCoupon;
 
                 break;
 
@@ -283,7 +265,7 @@ class OrderService
             throw new InvalidOrderItemException('Testing plans are not enabled');
         }
 
-        $allowedCampaignIds = array_unique([Campaign::default()->first()?->id, $referral?->campaign_id]);
+        $allowedCampaignIds = array_unique([Campaign::default()->first()?->id, $reference?->campaign_id]);
         $planCampaignIds = $plan->campaigns->pluck('id')->toArray();
 
         if (array_intersect($allowedCampaignIds, $planCampaignIds) === []) {
@@ -297,6 +279,6 @@ class OrderService
             throw new InvalidOrderItemException('Plan not allowed');
         }
 
-        $order->item_price = $plan->price;
+        $order->amount_subtotal = $plan->price;
     }
 }

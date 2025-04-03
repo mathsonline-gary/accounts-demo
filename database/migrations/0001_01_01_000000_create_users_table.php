@@ -16,7 +16,6 @@ return new class extends Migration
             $table->unsignedInteger('brand_id');
             $table->unsignedTinyInteger('role_id')
                 ->comment('1: Admin, 2: Student, 3: Teacher, 4: Customer');
-            $table->string('google_id')->nullable();
             $table->string('first_name', 50);
             $table->string('last_name', 50);
             $table->string('email', 255)->nullable()->unique();
@@ -45,15 +44,15 @@ return new class extends Migration
         Schema::create('user_external_services', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('user_id');
-            $table->string('service')
-                ->comment('The external service that the user is linked to. e.g. "google", "facebook", etc.');
-            $table->string('service_account_id')
+            $table->string('provider')
+                ->comment('The external service provider that the user is linked to. e.g. "google", "facebook", etc.');
+            $table->string('provider_user_id')
                 ->comment('The ID of the user on the external service. e.g. Google User ID, Facebook User ID, etc.');
 
-            $table->unique(['service', 'service_account_id']);
+            $table->unique(['provider', 'provider_user_id']);
             $table->index('user_id');
-            $table->index('service');
-            $table->index('service_account_id');
+            $table->index('provider');
+            $table->index('provider_user_id');
         });
     }
 

@@ -11,14 +11,14 @@ class UserExternalAccount extends Model
 {
     protected $fillable = [
         'user_id',
-        'service',
-        'service_account_id',
+        'provider',
+        'provider_user_id',
     ];
 
     public function casts(): array
     {
         return [
-            'service' => ExternalService::class,
+            'provider' => ExternalService::class,
         ];
     }
 
@@ -31,20 +31,27 @@ class UserExternalAccount extends Model
     }
 
     /**
-     * Scope a query to only include external accounts by service and service account ID.
+     * Scope a query to only include external accounts of the given user.
      */
-    public function scopeByServiceAccountId(Builder $query, ExternalService $service, string $serviceAccountId): void
+    public function scopeOfUser(Builder $query, int $userId): void
     {
-        $query->where('service', $service)
-            ->where('service_account_id', $serviceAccountId);
+        $query->where('user_id', $userId);
     }
 
     /**
-     * Scope a query to only include external accounts by service and user ID.
+     * Scope a query to only include external accounts of the given provider.
      */
-    public function scopeByServiceAndUserId(Builder $query, ExternalService $service, int $userId): void
+    public function scopeByProvider(Builder $query, ExternalService $provider): void
     {
-        $query->where('service', $service)
-            ->where('user_id', $userId);
+        $query->where('provider', $provider);
+    }
+
+    /**
+     * Scope a query to only include external accounts of the given provider and provider user ID.
+     */
+    public function scopeByProviderUserId(Builder $query, ExternalService $provider, string $providerUserId): void
+    {
+        $query->where('provider', $provider)
+            ->where('provider_user_id', $providerUserId);
     }
 }

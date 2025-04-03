@@ -13,16 +13,13 @@ enum ExternalService: string
     case STRIPE = 'stripe';
     case KEAP = 'keap';
 
-    /**
-     * Get the display name of the service.
-     */
-    public function label(): string
+    public function toString(): string
     {
-        return match($this) {
-            self::MATHSONLINE => 'MathsOnline',
-            self::GOOGLE => 'Google',
-            self::STRIPE => 'Stripe',
-            self::KEAP => 'Keap',
+        return match ($this) {
+            self::MATHSONLINE => 'mathsonline',
+            self::GOOGLE => 'google',
+            self::STRIPE => 'stripe',
+            self::KEAP => 'keap',
         };
     }
-} 
+}

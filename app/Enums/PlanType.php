@@ -12,4 +12,14 @@ enum PlanType: int
     case HOMESCHOOL = 2;
     case OFFLINE = 3;   // Type of custom plans that for offline payment and coupon redemption.
     case DEPRECATED = 4;    // Deprecated plans that are no longer available for purchase.
+
+    public function toString(): string
+    {
+        return match ($this) {
+            self::STANDARD => 'standard',
+            self::HOMESCHOOL => 'homeschool',
+            self::OFFLINE => 'offline',
+            self::DEPRECATED => 'deprecated',
+        };
+    }
 }

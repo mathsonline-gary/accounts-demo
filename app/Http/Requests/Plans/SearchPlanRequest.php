@@ -5,7 +5,7 @@ namespace App\Http\Requests\Plans;
 use App\Enums\Brand;
 use App\Enums\PlanType;
 use App\Http\Requests\Request;
-use App\Rules\ReferralNonce;
+use App\Rules\ReferenceNonce;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
@@ -36,7 +36,7 @@ class SearchPlanRequest extends Request
                 'nullable',
                 'string',
                 Rule::requiredIf(fn () => strtoupper($this->input('promo_code')) === 'ORIG'),
-                new ReferralNonce,
+                new ReferenceNonce,
             ],
             'pagination' => ['nullable', 'boolean'],
             'page' => ['nullable', 'integer'],
