@@ -48,6 +48,8 @@ return new class extends Migration
                 ->nullable();
             $table->string('billing_country', 255)
                 ->nullable();
+            $table->string('billing_phone', 255)
+                ->nullable();
 
             // Item & amount
             $table->unsignedBigInteger('item_id')
@@ -77,6 +79,9 @@ return new class extends Migration
                 ->comment('The payment gateway used to pay for the order');
             $table->boolean('is_hidden')
                 ->default(false);
+            $table->text('source')
+                ->nullable()
+                ->comment('The source of the order, i.e. the full URL of the web page where the user placed the order.');
 
             $table->timestamps();
         });

@@ -18,50 +18,47 @@ class OrderResource extends JsonResource
             'id' => $this->id,
             'uuid' => $this->uuid,
             'type' => [
-                'id' => $this->type_id,
+                'id' => $this->type,
                 'name' => $this->type->toString(),
             ],
-            'brand' => [
-                'id' => $this->brand_id,
-                'name' => $this->brand->toString(),
-            ],
-
+            'brand_id' => $this->brand_id,
             'item' => $this->whenLoaded(
                 'item',
                 fn () => $this->item->toArray(),
                 $this->item_id
             ),
-
-            // Reference code
             'reference_code' => [
                 'code' => $this->reference_code,
                 'type' => $this->reference_code_type->toString(),
                 'validation_error' => $this->reference_code_validation_error,
             ],
             'status' => $this->status,
-            'billing_address' => [
-                'line_1' => $this->billing_address_line_1,
-                'line_2' => $this->billing_address_line_2,
-                'city' => $this->billing_city,
-                'state' => $this->billing_state,
-                'postal_code' => $this->billing_postal_code,
-                'country' => $this->billing_country,
+            'billing' => [
+                'address_line_1' => $this->billing_address_line_1,
+                'address_line_2' => $this->billing_address_line_2,
+                'address_city' => $this->billing_city,
+                'address_state' => $this->billing_state,
+                'address_postal_code' => $this->billing_postal_code,
+                'address_country' => $this->billing_country,
+                'phone' => $this->billing_phone,
             ],
             'recipient' => [
                 'id' => $this->recipient_id,
                 'email' => $this->recipient_email,
                 'first_name' => $this->recipient_first_name,
                 'last_name' => $this->recipient_last_name,
-                'phone' => $this->whenLoaded('recipient', fn () => [
-                    'home' => $this->recipient->home_phone,
-                    'mobile' => $this->recipient->mobile_phone,
-                ]),
             ],
+            'creator' => $this->whenLoaded(
+                'creator',
+                fn () => new UserResource($this->creator),
+                $this->creator_id
+            ),
             'amount' => [
                 'subtotal' => $this->amount_subtotal,
                 'tax' => $this->amount_tax,
                 'total' => $this->amount_total,
             ],
+            'source' => $this->source,
             'paid_at' => $this->paid_at,
             'paid_via' => $this->paid_via?->value,
             'created_at' => $this->created_at,

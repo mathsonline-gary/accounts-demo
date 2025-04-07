@@ -5,7 +5,6 @@ namespace App\Http\Requests\Orders;
 use App\Enums\Brand;
 use App\Enums\OrderType;
 use App\Enums\ReferenceCodeType;
-use App\Models\Plan;
 use App\Rules\ReferenceNonce;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -45,7 +44,7 @@ class StoreOrderRequest extends FormRequest
         return [
             'brand_id' => ['required', 'integer', Rule::in(Brand::cases())],
             'type_id' => ['required', 'integer', Rule::in(OrderType::cases())],
-            'item_id' => ['required', 'integer', Rule::exists(Plan::class, 'id')],
+            'item_id' => ['required', 'integer'],
             'recipient_first_name' => ['required', 'string', 'max:255'],
             'recipient_last_name' => ['required', 'string', 'max:255'],
             'recipient_email' => ['required', 'email', 'max:255'],
@@ -66,6 +65,8 @@ class StoreOrderRequest extends FormRequest
                 Rule::requiredIf(fn () => $this->input('reference_code') === 'ORIG' && $this->input('reference_code_type_id') === ReferenceCodeType::PROMO->value),
                 new ReferenceNonce,
             ],
+            'include' => ['nullable', 'array'],
+            'include.*' => ['string', Rule::in(['creator'])],
         ];
     }
 }

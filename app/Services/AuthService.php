@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Enums\ExternalService;
 use App\Enums\UserRole;
 use App\Events\CustomerCreated;
-use App\Exceptions\AccountInitializationFailedException;
+use App\Exceptions\Auth\UserAccountNotCreatedException;
 use App\Models\User;
 use App\Models\UserExternalAccount;
 use Illuminate\Auth\Events\Registered;
@@ -42,8 +42,7 @@ class AuthService
      *     ip_address: string|null
      * } $payload
      *
-     * @throws AccountInitializationFailedException
-     * @throws Throwable
+     * @throws UserAccountNotCreatedException
      */
     public function register(array $payload): ?string
     {
@@ -67,7 +66,7 @@ class AuthService
         ]);
 
         if ($payload['type'] === 'customer') {
-            $user = $this->initializeUserAccount($payload);
+            $user = $this->createUserAccount($payload);
 
             event(new Registered($user));
 
@@ -91,6 +90,8 @@ class AuthService
 
     /**
      * Authenticate a user via OAuth.
+     *
+     * @throws UserAccountNotCreatedException
      */
     public function oauth(string $provider, int $brandId): string
     {
@@ -115,7 +116,7 @@ class AuthService
                 $attributes['last_name'] = $socialiteUser->user['family_name'];
             }
 
-            $user = $this->initializeUserAccount($attributes);
+            $user = $this->createUserAccount($attributes);
 
             $userSocialAccount = UserExternalAccount::create([
                 'user_id' => $user->id,
@@ -156,9 +157,9 @@ class AuthService
      *     ip_address: string|null
      * } $payload
      *
-     * @throws AccountInitializationFailedException
+     * @throws UserAccountNotCreatedException
      */
-    private function initializeUserAccount(array $payload): User
+    private function createUserAccount(array $payload): User
     {
         $payload = Arr::only($payload, [
             'brand_id',
@@ -209,12 +210,12 @@ class AuthService
 
             // TODO: dispatch event: UserAccountInitialized
         } catch (Throwable $e) {
-            Log::error("Failed to initialize customer account: {$e->getMessage()}", [
+            Log::error("Failed to create user account: {$e->getMessage()}", [
                 'payload' => $payload,
                 'exception' => $e,
             ]);
 
-            throw new AccountInitializationFailedException('Failed to initialize customer account.', 0, $e);
+            throw new UserAccountNotCreatedException;
         }
     }
 }

@@ -27,11 +27,11 @@ class RegisterRequest extends Request
     {
         return [
             'brand_id' => ['required', 'integer', Rule::in(Brand::cases())],
-            'type' => ['required', 'string', Rule::in(['customer', 'school'])],
+            'type' => ['required', 'string', Rule::in(['customer'])],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class, 'email')],
-            'username' => ['required', 'string', 'max:255', Rule::unique(User::class, 'username')],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'username' => ['required', 'string', 'max:255'],
             'home_phone' => ['nullable', 'string', 'max:50'],
             'mobile_phone' => ['nullable', 'string', 'max:50'],
             'address_line_1' => ['nullable', 'string', 'max:255'],

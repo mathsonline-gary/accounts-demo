@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Exceptions\AccountInitializationFailedException;
+use App\Exceptions\Auth\UserAccountNotCreatedException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\AuthService;
@@ -35,7 +35,7 @@ class RegisteredUserController extends Controller
                 'address_country' => $request->input('address_country'),
                 'ip_address' => $request->ip(),
             ]);
-        } catch (AccountInitializationFailedException) {
+        } catch (UserAccountNotCreatedException) {
             return response()->json([
                 'message' => 'Failed to register',
             ], 500);

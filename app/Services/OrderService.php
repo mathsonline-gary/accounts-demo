@@ -6,15 +6,15 @@ use App\Enums\Brand;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Enums\ReferenceCodeType;
-use App\Exceptions\InvalidOrderItemException;
-use App\Exceptions\RecentPaidOrderExistsException;
+use App\Exceptions\Orders\OrderNotFoundException;
+use App\Exceptions\Orders\RecentPaidOrderAlreadyExistsException;
+use App\Exceptions\Plans\PlanNotFoundException;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\Plan;
 use App\Models\Promo;
 use App\Models\RenewalCoupon;
 use App\Models\User;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
@@ -35,11 +35,12 @@ class OrderService
      *     recipient_last_name: string,
      *     reference_code: string|null,
      *     reference_code_type_id: int|null,
+     *     source: string|null,
+     *     with_relations: string[]|null,
      * } $data
      *
-     * @throws RecentPaidOrderExistsException
-     * @throws AuthorizationException
-     * @throws InvalidOrderItemException
+     * @throws PlanNotFoundException
+     * @throws RecentPaidOrderAlreadyExistsException
      */
     public function createOrder(array $data): Order
     {
@@ -53,15 +54,15 @@ class OrderService
             'recipient_last_name',
             'reference_code',
             'reference_code_type_id',
+            'source',
+            'with_relations',
         ]);
-
-        $creator = $data['creator_id'] ? User::find($data['creator_id']) : null;
 
         $order = new Order([
             'brand_id' => $data['brand_id'],
             'uuid' => Str::uuid()->toString(),
             'type_id' => $data['type_id'],
-            'creator_id' => $creator?->id,
+            'creator_id' => $data['creator_id'],
             'recipient_email' => $data['recipient_email'],
             'recipient_first_name' => $data['recipient_first_name'],
             'recipient_last_name' => $data['recipient_last_name'],
@@ -69,7 +70,28 @@ class OrderService
             'status' => OrderStatus::PENDING,
             'reference_code' => $data['reference_code'],
             'reference_code_type_id' => $data['reference_code_type_id'],
+            'source' => $data['source'],
         ]);
+
+        // Set recipient_id if the creator_id is set.
+        if ($data['creator_id'] !== null) {
+            if (in_array('creator', $data['with_relations'])) {
+                $order->load('creator');
+            }
+
+            if (in_array('checkout', $data['with_relations'])) {
+                $order->recipient_id = in_array($order->type, [OrderType::NEW, OrderType::RENEWAL, OrderType::TRIAL, OrderType::COUPON_REDEMPTION])
+                    ? $data['creator_id']
+                    : null;
+            }
+        }
+
+        // Check if the user has a recent paid order.
+        if (in_array($order->type, [OrderType::NEW, OrderType::RENEWAL])) {
+            if ($this->hasPurchasedRecently($order->recipient_email)) {
+                throw new RecentPaidOrderAlreadyExistsException;
+            }
+        }
 
         $this->validateOrder($order);
 
@@ -78,6 +100,33 @@ class OrderService
         Log::info('Order created', ['order' => $order->id]);
 
         return $order;
+    }
+
+    /**
+     * Get an order by its UUID.
+     *
+     * @param  string  $uuid  The UUID of the order.
+     * @param  array{
+     *     with_relations: string[]|null,
+     * } $options
+     */
+    public function getOrderByUuid(string $uuid, array $options = []): Order
+    {
+        $options = Arr::only($options, [
+            'with_relations',
+        ]);
+
+        try {
+            $order = Order::byUuid($uuid)->firstOrFail();
+
+            if (in_array('creator', $options['with_relations'])) {
+                $order->load('creator');
+            }
+
+            return $order;
+        } catch (ModelNotFoundException) {
+            throw new OrderNotFoundException;
+        }
     }
 
     /**
@@ -102,25 +151,15 @@ class OrderService
     }
 
     /**
-     * Validate the Order
+     * Validate the Order.
      *
+     * @param  Order  $order  The order to validate.
      *
-     * @throws InvalidOrderItemException
-     * @throws RecentPaidOrderExistsException
+     * @throws PlanNotFoundException
+     * @throws RecentPaidOrderAlreadyExistsException
      */
     private function validateOrder(Order $order): void
     {
-        // Check if the user has a recent paid order
-        if (in_array($order->type, [OrderType::NEW, OrderType::RENEWAL])) {
-            if ($this->hasPurchasedRecently($order->recipient_email)) {
-                Log::warning('The user has a recent purchase', [
-                    'user_id' => $order->recipient_id,
-                ]);
-
-                throw new RecentPaidOrderExistsException;
-            }
-        }
-
         // Validate the reference code
         $reference = null;
 
@@ -253,7 +292,7 @@ class OrderService
                 'plan_id' => $order->item_id,
             ]);
 
-            throw new InvalidOrderItemException('Plan not found');
+            throw new PlanNotFoundException('Plan not found');
         }
 
         if ($plan->isTesting() && ! config('services.mol.testing_plans_enabled')) {
@@ -262,7 +301,7 @@ class OrderService
                 'plan_id' => $order->item_id,
             ]);
 
-            throw new InvalidOrderItemException('Testing plans are not enabled');
+            throw new PlanNotFoundException('Testing plan not allowed');
         }
 
         $allowedCampaignIds = array_unique([Campaign::default()->first()?->id, $reference?->campaign_id]);
@@ -276,7 +315,7 @@ class OrderService
                 'plan_campaign_ids' => $planCampaignIds,
             ]);
 
-            throw new InvalidOrderItemException('Plan not allowed');
+            throw new PlanNotFoundException('Plan not allowed');
         }
 
         $order->amount_subtotal = $plan->price;

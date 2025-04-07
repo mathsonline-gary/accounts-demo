@@ -118,14 +118,16 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read mixed $amount_total
- * @property \App\Enums\Brand $brand
+ * @property-read mixed $brand
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\Plan|null $item
  * @property-read \App\Models\User|null $recipient
+ * @property-read mixed $recipient_name
  * @property-read mixed $reference_code_type
  * @property-read mixed $type
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byRecipientEmail(string $recipientEmail)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byStatus(\App\Enums\OrderStatus $status)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byUuid(string $uuid)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order ofType(\App\Enums\OrderType $type)
