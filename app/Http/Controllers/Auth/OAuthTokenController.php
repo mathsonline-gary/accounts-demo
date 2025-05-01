@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Enums\Brand;
+use App\Enums\ExternalService;
 use App\Exceptions\Auth\UserAccountNotCreatedException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\OAuthRequest;
@@ -62,7 +63,7 @@ class OAuthTokenController extends Controller
         }
 
         try {
-            $token = $this->authService->oauth($provider, $request->input('brand_id'));
+            $token = $this->authService->oauth(ExternalService::from($provider), $request->input('brand_id'));
         } catch (UserAccountNotCreatedException $e) {
             return response()->json([
                 'message' => 'Failed to authenticate via OAuth.',

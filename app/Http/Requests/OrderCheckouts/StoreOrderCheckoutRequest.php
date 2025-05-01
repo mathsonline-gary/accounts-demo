@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\OrderCheckouts;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Request;
 
-class StoreOrderCheckoutRequest extends FormRequest
+class StoreOrderCheckoutRequest extends Request
 {
     /**
      * Get the validation rules that apply to the request.

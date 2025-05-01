@@ -41,7 +41,7 @@ return new class extends Migration
             $table->timestamp('created_at')->nullable();
         });
 
-        Schema::create('user_external_services', function (Blueprint $table) {
+        Schema::create('user_external_accounts', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('user_id');
             $table->string('provider')
@@ -53,6 +53,7 @@ return new class extends Migration
             $table->index('user_id');
             $table->index('provider');
             $table->index('provider_user_id');
+            $table->timestamps();
         });
     }
 

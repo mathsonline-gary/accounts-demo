@@ -5,12 +5,12 @@ namespace App\Http\Requests\Orders;
 use App\Enums\Brand;
 use App\Enums\OrderType;
 use App\Enums\ReferenceCodeType;
+use App\Http\Requests\Request;
 use App\Rules\ReferenceNonce;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreOrderRequest extends FormRequest
+class StoreOrderRequest extends Request
 {
     protected $stopOnFirstFailure = true;
 

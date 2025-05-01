@@ -105,6 +105,7 @@ namespace App\Models{
  * @property string|null $billing_state
  * @property string|null $billing_postal_code
  * @property string|null $billing_country
+ * @property string|null $billing_phone
  * @property int $item_id The item ID of the order, i.e. plan ID.
  * @property float $amount_subtotal The amount of the order before tax is applied.
  * @property float|null $amount_tax The amount of tax applied to the order.
@@ -115,15 +116,17 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $paid_at
  * @property \App\Enums\PaymentGateway|null $paid_via The payment gateway used to pay for the order
  * @property bool $is_hidden
+ * @property string|null $source The source of the order, i.e. the full URL of the web page where the user placed the order.
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read mixed $amount_total
- * @property-read mixed $brand
+ * @property-read \App\Models\Brand|null $brand
  * @property-read \App\Models\User|null $creator
  * @property-read \App\Models\Plan|null $item
  * @property-read \App\Models\User|null $recipient
  * @property-read mixed $recipient_name
  * @property-read mixed $reference_code_type
+ * @property-read \App\Models\StripeCheckout|null $stripeCheckout
  * @property-read mixed $type
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byRecipientEmail(string $recipientEmail)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byStatus(\App\Enums\OrderStatus $status)
@@ -138,6 +141,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingAddressLine2($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingCity($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingCountry($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingPhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingPostalCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBillingState($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBrandId($value)
@@ -155,6 +159,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereReferenceCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereReferenceCodeTypeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereReferenceCodeValidationError($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSource($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTypeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)

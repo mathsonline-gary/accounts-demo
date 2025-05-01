@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\Orders;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Request;
 use Illuminate\Validation\Rule;
-class ShowOrderRequest extends FormRequest
+
+class ShowOrderRequest extends Request
 {
     /**
      * Get the validation rules that apply to the request.

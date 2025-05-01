@@ -93,14 +93,14 @@ class AuthService
      *
      * @throws UserAccountNotCreatedException
      */
-    public function oauth(string $provider, int $brandId): string
+    public function oauth(ExternalService $provider, int $brandId): string
     {
         // Get the user from the authorization code
-        $socialiteUser = Socialite::driver($provider)
+        $socialiteUser = Socialite::driver($provider->toString())
             ->stateless()
             ->user();
 
-        $userSocialAccount = UserExternalAccount::byServiceAccountId($provider, $socialiteUser->getId())->first();
+        $userSocialAccount = UserExternalAccount::byProviderUserId($provider, $socialiteUser->getId())->first();
 
         if (! $userSocialAccount) {
             $attributes = [
@@ -111,17 +111,17 @@ class AuthService
                 'username' => $socialiteUser->getEmail(), // Using email as username for OAuth users
             ];
 
-            if ($provider === 'google') {
+            if ($provider === ExternalService::GOOGLE) {
                 $attributes['first_name'] = $socialiteUser->user['given_name'];
                 $attributes['last_name'] = $socialiteUser->user['family_name'];
             }
 
             $user = $this->createUserAccount($attributes);
 
-            $userSocialAccount = UserExternalAccount::create([
+            UserExternalAccount::create([
                 'user_id' => $user->id,
-                'service' => ExternalService::from($provider),
-                'service_account_id' => $socialiteUser->getId(),
+                'provider' => $provider,
+                'provider_user_id' => $socialiteUser->getId(),
             ]);
 
             return JWTAuth::fromUser($user);
