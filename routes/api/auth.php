@@ -23,5 +23,6 @@ Route::prefix('oauth')
     ->name('oauth.')
     ->group(function () {
         Route::get('/{provider}', [OAuthTokenController::class, 'index'])->name('index');
-        Route::post('/{provider}', [OAuthTokenController::class, 'store'])->name('store');
+        Route::post('/{provider}/register', [OAuthTokenController::class, 'store'])->name('register');
+        Route::post('/{provider}/login', [OAuthTokenController::class, 'show'])->name('login');
     });

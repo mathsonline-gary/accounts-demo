@@ -13,9 +13,7 @@ class AuthenticatedUserController extends Controller
         $user = Auth::user();
 
         if (! $user) {
-            return response()->json([
-                'message' => 'User not found',
-            ], 404);
+            abort(401);
         }
 
         return response()->json([

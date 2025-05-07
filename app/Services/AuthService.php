@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Enums\ExternalService;
 use App\Enums\UserRole;
 use App\Events\CustomerCreated;
+use App\Exceptions\Auth\UserAccountAlreadyExistsException;
 use App\Exceptions\Auth\UserAccountNotCreatedException;
+use App\Exceptions\Auth\UserAccountNotFoundException;
 use App\Models\User;
 use App\Models\UserExternalAccount;
 use Illuminate\Auth\Events\Registered;
@@ -78,58 +80,98 @@ class AuthService
 
     /**
      * Get the redirect URL for the OAuth provider.
+     *
+     * @param  "google"  $provider
+     * @param array{
+     *     brand_id: int,
+     *     mode: string
+     * }               $parameters
      */
-    public function getOAuthRedirectUrl(string $provider, int $brandId): string
+    public function getOAuthRedirectUrl(string $provider, array $parameters): string
     {
+        $state = base64_encode(json_encode($parameters));
+
         return Socialite::driver($provider)
             ->stateless()
-            ->with(['brand_id' => $brandId])
+            ->with(['state' => $state])
             ->redirect()
             ->getTargetUrl();
     }
 
     /**
-     * Authenticate a user via OAuth.
+     * Register a user via OAuth.
      *
      * @throws UserAccountNotCreatedException
+     * @throws UserAccountAlreadyExistsException
      */
-    public function oauth(ExternalService $provider, int $brandId): string
+    public function oauthRegister(ExternalService $provider, int $brandId): string
     {
         // Get the user from the authorization code
         $socialiteUser = Socialite::driver($provider->toString())
             ->stateless()
             ->user();
 
+        // Check whether there is an existing user linked to the social account.
         $userSocialAccount = UserExternalAccount::byProviderUserId($provider, $socialiteUser->getId())->first();
-
-        if (! $userSocialAccount) {
-            $attributes = [
-                'brand_id' => $brandId,
-                'type' => UserRole::CUSTOMER,
-                'email' => $socialiteUser->getEmail(),
-                'password' => Hash::make(Str::random(16)),
-                'username' => $socialiteUser->getEmail(), // Using email as username for OAuth users
-            ];
-
-            if ($provider === ExternalService::GOOGLE) {
-                $attributes['first_name'] = $socialiteUser->user['given_name'];
-                $attributes['last_name'] = $socialiteUser->user['family_name'];
-            }
-
-            $user = $this->createUserAccount($attributes);
-
-            UserExternalAccount::create([
-                'user_id' => $user->id,
-                'provider' => $provider,
-                'provider_user_id' => $socialiteUser->getId(),
-            ]);
-
-            return JWTAuth::fromUser($user);
+        if ($userSocialAccount) {
+            throw new UserAccountAlreadyExistsException;
         }
 
-        $user = $userSocialAccount->user;
+        // Check whether there is an existing user with the same email.
+        $existingUser = User::byEmail($socialiteUser->getEmail())->first();
+        if ($existingUser) {
+            throw new UserAccountAlreadyExistsException;
+        }
 
-        // TODO: check if the user is still active, if not, throw an exception
+        $attributes = [
+            'brand_id' => $brandId,
+            'type' => UserRole::CUSTOMER,
+            'email' => $socialiteUser->getEmail(),
+            'password' => Hash::make(Str::random(16)),
+            'username' => $socialiteUser->getEmail(),
+        ];
+
+        if ($provider === ExternalService::GOOGLE) {
+            $attributes['first_name'] = $socialiteUser->user['given_name'];
+            $attributes['last_name'] = $socialiteUser->user['family_name'];
+        }
+
+        $user = $this->createUserAccount($attributes);
+
+        UserExternalAccount::create([
+            'user_id' => $user->id,
+            'provider' => $provider,
+            'provider_user_id' => $socialiteUser->getId(),
+        ]);
+
+        return JWTAuth::fromUser($user);
+    }
+
+    /**
+     * Log in a user via OAuth.
+     *
+     *
+     * @throws UserAccountNotFoundException
+     */
+    public function oauthLogin(ExternalService $provider, int $brandId): string
+    {
+        // Get the user from the authorization code
+        $socialiteUser = Socialite::driver($provider->toString())
+            ->stateless()
+            ->user();
+
+        // Check whether there is an existing user linked to the social account.
+        $userSocialAccount = UserExternalAccount::byProviderUserId($provider, $socialiteUser->getId())->first();
+        if (! $userSocialAccount) {
+            throw new UserAccountNotFoundException;
+        }
+
+        // Check whether the user is in the same brand.
+        $user = $userSocialAccount->user;
+        if ($user->brand_id !== $brandId) {
+            Log::debug('User brand id: ' . $brandId);
+            throw new UserAccountNotFoundException;
+        }
 
         return JWTAuth::fromUser($user);
     }
