@@ -111,6 +111,14 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Scope a query to only include users by username.
+     */
+    public function scopeByUsername(Builder $query, string $username): void
+    {
+        $query->where('username', $username);
+    }
+
+    /**
      * Check if the user is an admin.
      */
     public function isAdmin(): bool

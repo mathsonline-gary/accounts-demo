@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Enums\Brand;
 use App\Enums\ExternalService;
-use App\Exceptions\Auth\UserAccountAlreadyExistsException;
-use App\Exceptions\Auth\UserAccountNotCreatedException;
 use App\Exceptions\Auth\UserAccountNotFoundException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\OAuthRequest;
@@ -60,35 +58,7 @@ class OAuthTokenController extends Controller
         }
 
         try {
-            $token = $this->authService->oauthRegister(ExternalService::from($provider), $request->integer('brand_id'));
-        } catch (UserAccountNotCreatedException $e) {
-            return response()->json([
-                'message' => sprintf('Failed to authenticate via %s.', ucfirst($provider)),
-            ], 500);
-        } catch (UserAccountAlreadyExistsException $e) {
-            return response()->json([
-                'message' => sprintf('This %s account is already in use. Please login instead or try with another one.', ucfirst($provider)),
-            ], 409);
-        }
-
-        return response()->json([
-            'message' => sprintf('Authenticated via %s.', ucfirst($provider)),
-            'data' => [
-                'token' => $token,
-            ],
-        ]);
-    }
-
-    public function show(OAuthRequest $request, string $provider): JsonResponse
-    {
-        if (! in_array($provider, ['google'])) {
-            return response()->json([
-                'message' => 'Invalid OAuth provider.',
-            ], 400);
-        }
-
-        try {
-            $token = $this->authService->oauthLogin(ExternalService::from($provider), $request->integer('brand_id'));
+            $result = $this->authService->oauthLogin(ExternalService::from($provider), $request->integer('brand_id'));
         } catch (UserAccountNotFoundException $e) {
             return response()->json([
                 'message' => 'Could not find the linked account. Please sign up first or try with another one.',
@@ -98,8 +68,8 @@ class OAuthTokenController extends Controller
         return response()->json([
             'message' => sprintf('Authenticated via %s.', ucfirst($provider)),
             'data' => [
-                'token' => $token,
+                'token' => $result['token'],
             ],
-        ]);
+        ])->cookie($result['cookie']);
     }
 }

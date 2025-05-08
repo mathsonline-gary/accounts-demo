@@ -29,14 +29,14 @@ class LoginRequest extends Request
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'remember' => ['boolean'],
         ];
     }
 
     /**
      * Attempt to authenticate the request's credentials.
      *
-     * @throws \Illuminate\Validation\ValidationException
-     * @throws \Tymon\JWTAuth\Exceptions\JWTException
+     * @throws ValidationException
      */
     public function authenticate(): string
     {
@@ -58,7 +58,7 @@ class LoginRequest extends Request
     /**
      * Ensure the login request is not rate limited.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function ensureIsNotRateLimited(): void
     {

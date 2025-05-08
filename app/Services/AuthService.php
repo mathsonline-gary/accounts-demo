@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
+use Symfony\Component\HttpFoundation\Cookie;
 use Throwable;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -46,7 +48,7 @@ class AuthService
      *
      * @throws UserAccountNotCreatedException
      */
-    public function register(array $payload): ?string
+    public function register(array $payload): void
     {
         $payload = Arr::only($payload, [
             'brand_id',
@@ -67,15 +69,23 @@ class AuthService
             'ip_address',
         ]);
 
+        if (User::byEmail($payload['email'])->first() !== null) {
+            throw ValidationException::withMessages([
+                'email' => 'This email is already taken. Please choose another one.',
+            ]);
+        }
+
+        if (User::byUsername($payload['username'])->first() !== null) {
+            throw ValidationException::withMessages([
+                'username' => 'This username is already taken. Please choose another one.',
+            ]);
+        }
+
         if ($payload['type'] === 'customer') {
             $user = $this->createUserAccount($payload);
 
             event(new Registered($user));
-
-            return JWTAuth::fromUser($user);
         }
-
-        return null;
     }
 
     /**
@@ -101,10 +111,15 @@ class AuthService
     /**
      * Register a user via OAuth.
      *
+     * @return array{
+     *     token: string,
+     *     cookie: Cookie,
+     * }
+     *
      * @throws UserAccountNotCreatedException
      * @throws UserAccountAlreadyExistsException
      */
-    public function oauthRegister(ExternalService $provider, int $brandId): string
+    public function oauthRegister(ExternalService $provider, int $brandId): array
     {
         // Get the user from the authorization code
         $socialiteUser = Socialite::driver($provider->toString())
@@ -144,16 +159,30 @@ class AuthService
             'provider_user_id' => $socialiteUser->getId(),
         ]);
 
-        return JWTAuth::fromUser($user);
+        $accessToke = JWTAuth::fromUser($user);
+
+        $refreshToken = JWTAuth::claims([
+            'jti' => Str::uuid(),
+            'exp' => now()->addDay()->timestamp,
+        ])->fromUser($user);
+
+        return [
+            'token' => $accessToke,
+            'cookie' => $this->newRefreshTokenCookie($refreshToken, 1),
+        ];
     }
 
     /**
      * Log in a user via OAuth.
      *
+     * @return array{
+     *     token: string,
+     *     cookie: Cookie,
+     * }
      *
      * @throws UserAccountNotFoundException
      */
-    public function oauthLogin(ExternalService $provider, int $brandId): string
+    public function oauthLogin(ExternalService $provider, int $brandId): array
     {
         // Get the user from the authorization code
         $socialiteUser = Socialite::driver($provider->toString())
@@ -169,11 +198,21 @@ class AuthService
         // Check whether the user is in the same brand.
         $user = $userSocialAccount->user;
         if ($user->brand_id !== $brandId) {
-            Log::debug('User brand id: ' . $brandId);
+            Log::debug('User brand id: '.$brandId);
             throw new UserAccountNotFoundException;
         }
 
-        return JWTAuth::fromUser($user);
+        $accessToke = JWTAuth::fromUser($user);
+
+        $refreshToken = JWTAuth::claims([
+            'jti' => Str::uuid(),
+            'exp' => now()->addDay()->timestamp,
+        ])->fromUser($user);
+
+        return [
+            'token' => $accessToke,
+            'cookie' => $this->newRefreshTokenCookie($refreshToken, 1),
+        ];
     }
 
     /**
@@ -259,5 +298,20 @@ class AuthService
 
             throw new UserAccountNotCreatedException;
         }
+    }
+
+    /**
+     * Create a HTTPONLY cookie for the refresh token.
+     *
+     * @param string $refreshToken
+     * @param int    $days
+     *
+     * @return Cookie
+     */
+    public function newRefreshTokenCookie(string $refreshToken, int $days): Cookie
+    {
+        return cookie('refresh_token', $refreshToken, 60 * 24 * $days, '/')
+            ->withSameSite(app()->environment('local') ? Cookie::SAMESITE_LAX : Cookie::SAMESITE_NONE)
+            ->withSecure(! app()->environment('local'));
     }
 }
