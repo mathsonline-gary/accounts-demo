@@ -21,7 +21,7 @@ class OrderPolicy
             case OrderType::TRIAL:
             case OrderType::COUPON_REDEMPTION:
             case OrderType::GIFT:
-                return $user === null || $user->isCustomer();
+                return $user === null;
             case OrderType::OFFLINE:
                 return $user?->isAdmin() ?? false;
             default:

@@ -15,14 +15,14 @@ return new class extends Migration
             $table->id();
             $table->unsignedInteger('brand_id');
             $table->unsignedTinyInteger('role_id')
-                ->comment('1: Admin, 2: Student, 3: Teacher, 4: Customer');
+                ->comment('1: Admin, 2: Student, 3: Teacher');
             $table->string('first_name', 50);
             $table->string('last_name', 50);
             $table->string('email', 255)->nullable()->unique();
             $table->string('username', 50)->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password', 255);
-            $table->ipAddress('ip_address')->nullable();
+            $table->ipAddress()->nullable();
             $table->rememberToken();
             $table->timestamps();
 
@@ -64,6 +64,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
-        Schema::dropIfExists('user_external_services');
+        Schema::dropIfExists('user_external_accounts');
     }
 };

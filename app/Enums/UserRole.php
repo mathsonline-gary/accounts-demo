@@ -11,7 +11,6 @@ enum UserRole: int
     case ADMIN = 1;
     case STUDENT = 2;
     case TEACHER = 3;
-    case CUSTOMER = 4;
 
     public function toString(): string
     {
@@ -19,7 +18,6 @@ enum UserRole: int
             self::ADMIN => 'admin',
             self::STUDENT => 'student',
             self::TEACHER => 'teacher',
-            self::CUSTOMER => 'customer',
         };
     }
 }

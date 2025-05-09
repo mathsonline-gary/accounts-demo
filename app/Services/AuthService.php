@@ -81,11 +81,9 @@ class AuthService
             ]);
         }
 
-        if ($payload['type'] === 'customer') {
-            $user = $this->createUserAccount($payload);
+        $user = $this->createUserAccount($payload);
 
-            event(new Registered($user));
-        }
+        event(new Registered($user));
     }
 
     /**
@@ -140,7 +138,7 @@ class AuthService
 
         $attributes = [
             'brand_id' => $brandId,
-            'type' => UserRole::CUSTOMER,
+            'type' => UserRole::TEACHER,
             'email' => $socialiteUser->getEmail(),
             'password' => Hash::make(Str::random(16)),
             'username' => $socialiteUser->getEmail(),
@@ -265,7 +263,7 @@ class AuthService
             return DB::transaction(function () use ($payload) {
                 $user = User::create([
                     'brand_id' => $payload['brand_id'],
-                    'role_id' => UserRole::CUSTOMER->value,
+                    'role_id' => UserRole::TEACHER->value,
                     'username' => $payload['username'],
                     'first_name' => $payload['first_name'] ?? null,
                     'last_name' => $payload['last_name'] ?? null,
@@ -302,11 +300,6 @@ class AuthService
 
     /**
      * Create a HTTPONLY cookie for the refresh token.
-     *
-     * @param string $refreshToken
-     * @param int    $days
-     *
-     * @return Cookie
      */
     public function newRefreshTokenCookie(string $refreshToken, int $days): Cookie
     {
