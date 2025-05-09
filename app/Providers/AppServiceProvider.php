@@ -8,6 +8,7 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -44,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
         VerifyEmail::createUrlUsing(function (object $notifiable) {
             $id = $notifiable->getKey();
             $hash = sha1($notifiable->getEmailForVerification());
+            $routeName = 'v1.auth.verification.verify';
 
             $user = User::find($id);
             $brand = $user->brand;
@@ -53,11 +55,22 @@ class AppServiceProvider extends ServiceProvider
                 UserRole::STUDENT => $brand->student_website_url,
             };
 
-            $expiresAt = Carbon::now()->addMinutes(60)->getTimestamp();
-            $url = "$baseUrl/verify-email/$id/$hash?expires=$expiresAt";
-            $signature = hash_hmac('sha256', $url, config('app.key'));
-
-            return "$url&signature=$signature";
+            // Replace the server URL with the client URL.
+            return str_replace(
+                route($routeName, [
+                    'id' => $id,
+                    'hash' => $hash,
+                ]),
+                "$baseUrl/verify-email/$id/$hash",
+                URL::temporarySignedRoute(
+                    $routeName,
+                    Carbon::now()->addMinutes(60),
+                    [
+                        'id' => $id,
+                        'hash' => $hash,
+                    ]
+                )
+            );
         });
     }
 }
