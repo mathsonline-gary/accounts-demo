@@ -10,6 +10,7 @@ use App\Exceptions\Auth\UserAccountNotCreatedException;
 use App\Exceptions\Auth\UserAccountNotFoundException;
 use App\Models\User;
 use App\Models\UserExternalAccount;
+use App\ValueObjects\AuthTokenSet;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,6 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 use Symfony\Component\HttpFoundation\Cookie;
 use Throwable;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthService
 {
@@ -48,7 +48,7 @@ class AuthService
      *
      * @throws UserAccountNotCreatedException
      */
-    public function register(array $payload): void
+    public function register(array $payload): AuthTokenSet
     {
         $payload = Arr::only($payload, [
             'brand_id',
@@ -84,6 +84,8 @@ class AuthService
         $user = $this->createUserAccount($payload);
 
         event(new Registered($user));
+
+        return AuthTokenSet::fromUser($user);
     }
 
     /**
@@ -109,15 +111,11 @@ class AuthService
     /**
      * Register a user via OAuth.
      *
-     * @return array{
-     *     token: string,
-     *     cookie: Cookie,
-     * }
      *
-     * @throws UserAccountNotCreatedException
      * @throws UserAccountAlreadyExistsException
+     * @throws UserAccountNotCreatedException
      */
-    public function oauthRegister(ExternalService $provider, int $brandId): array
+    public function oauthRegister(ExternalService $provider, int $brandId): AuthTokenSet
     {
         // Get the user from the authorization code
         $socialiteUser = Socialite::driver($provider->toString())
@@ -157,30 +155,16 @@ class AuthService
             'provider_user_id' => $socialiteUser->getId(),
         ]);
 
-        $accessToke = JWTAuth::fromUser($user);
-
-        $refreshToken = JWTAuth::claims([
-            'jti' => Str::uuid(),
-            'exp' => now()->addDay()->timestamp,
-        ])->fromUser($user);
-
-        return [
-            'token' => $accessToke,
-            'cookie' => $this->newRefreshTokenCookie($refreshToken, 1),
-        ];
+        return AuthTokenSet::fromUser($user);
     }
 
     /**
      * Log in a user via OAuth.
      *
-     * @return array{
-     *     token: string,
-     *     cookie: Cookie,
-     * }
      *
      * @throws UserAccountNotFoundException
      */
-    public function oauthLogin(ExternalService $provider, int $brandId): array
+    public function oauthLogin(ExternalService $provider, int $brandId): AuthTokenSet
     {
         // Get the user from the authorization code
         $socialiteUser = Socialite::driver($provider->toString())
@@ -200,17 +184,7 @@ class AuthService
             throw new UserAccountNotFoundException;
         }
 
-        $accessToke = JWTAuth::fromUser($user);
-
-        $refreshToken = JWTAuth::claims([
-            'jti' => Str::uuid(),
-            'exp' => now()->addDay()->timestamp,
-        ])->fromUser($user);
-
-        return [
-            'token' => $accessToke,
-            'cookie' => $this->newRefreshTokenCookie($refreshToken, 1),
-        ];
+        return AuthTokenSet::fromUser($user);
     }
 
     /**

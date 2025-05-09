@@ -58,7 +58,7 @@ class OAuthTokenController extends Controller
         }
 
         try {
-            $result = $this->authService->oauthLogin(ExternalService::from($provider), $request->integer('brand_id'));
+            $tokenAuth = $this->authService->oauthLogin(ExternalService::from($provider), $request->integer('brand_id'));
         } catch (UserAccountNotFoundException $e) {
             return response()->json([
                 'message' => 'Could not find the linked account. Please sign up first or try with another one.',
@@ -68,8 +68,8 @@ class OAuthTokenController extends Controller
         return response()->json([
             'message' => sprintf('Authenticated via %s.', ucfirst($provider)),
             'data' => [
-                'token' => $result['token'],
+                'token' => $tokenAuth->accessToken,
             ],
-        ])->cookie($result['cookie']);
+        ])->cookie($tokenAuth->cookie());
     }
 }

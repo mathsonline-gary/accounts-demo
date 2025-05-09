@@ -19,6 +19,9 @@ return new class extends Migration
             $table->char('country_code', 2);
             $table->string('domain');
             $table->string('marketing_website_url');
+            $table->string('teacher_website_url');
+            $table->string('student_website_url');
+            $table->string('admin_website_url');
             $table->string('noreply_email');
             $table->string('noreply_name');
             $table->string('support_email');

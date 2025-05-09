@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Request;
 use App\Services\AuthService;
+use App\ValueObjects\AuthTokenSet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -16,23 +17,16 @@ class AuthenticatedTokenController extends Controller
 
     public function store(LoginRequest $request): JsonResponse
     {
-        $accessToken = $request->authenticate();
+        $request->authenticate();
 
-        // generate a refresh token with a long expiration time
-        $user = auth()->user();
-        $tokenLifetime = $request->boolean('remember') ? 7 : 1;
-        $refreshToken = JWTAuth::claims([
-            'exp' => now()->addDays($tokenLifetime)->timestamp,
-        ])->fromUser($user);
-
-        $cookie = $this->authService->newRefreshTokenCookie($refreshToken, $tokenLifetime);
+        $tokenAuth = AuthTokenSet::fromUser(auth()->user(), $request->boolean('remember') ? 7 : 1);
 
         return response()->json([
             'message' => 'User logged in successfully',
             'data' => [
-                'token' => $accessToken,
+                'token' => $tokenAuth->accessToken,
             ],
-        ])->cookie($cookie);
+        ])->cookie($tokenAuth->cookie());
     }
 
     public function destroy(): JsonResponse

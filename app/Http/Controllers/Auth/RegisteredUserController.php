@@ -17,7 +17,7 @@ class RegisteredUserController extends Controller
     public function store(RegisterRequest $request): JsonResponse
     {
         try {
-            $this->authService->register([
+            $tokenAuth = $this->authService->register([
                 'brand_id' => $request->integer('brand_id'),
                 'type' => $request->input('type'),
                 'first_name' => $request->input('first_name'),
@@ -43,6 +43,9 @@ class RegisteredUserController extends Controller
 
         return response()->json([
             'message' => 'User registered successfully',
-        ], 201);
+            'data' => [
+                'token' => $tokenAuth->accessToken,
+            ],
+        ], 201)->cookie($tokenAuth->cookie());
     }
 }

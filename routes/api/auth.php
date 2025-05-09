@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthenticatedUserController;
 use App\Http\Controllers\Auth\OAuthRegisteredUserController;
 use App\Http\Controllers\Auth\OAuthTokenController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')
@@ -13,6 +14,7 @@ Route::prefix('auth')
         Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
         Route::post('/login', [AuthenticatedTokenController::class, 'store'])->name('login');
         Route::post('/refresh', [AuthenticatedTokenController::class, 'refresh'])->name('refresh');
+        Route::post('/verify-email/{id}/{hash}', VerifyEmailController::class)->name('verification.verify');
 
         Route::middleware('auth:api')->group(function () {
             Route::get('/me', [AuthenticatedUserController::class, 'show'])->name('me');

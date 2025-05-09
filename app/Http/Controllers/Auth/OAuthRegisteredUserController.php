@@ -25,7 +25,7 @@ class OAuthRegisteredUserController extends Controller
         }
 
         try {
-            $result = $this->authService->oauthRegister(ExternalService::from($provider), $request->integer('brand_id'));
+            $tokenAuth = $this->authService->oauthRegister(ExternalService::from($provider), $request->integer('brand_id'));
         } catch (UserAccountNotCreatedException $e) {
             return response()->json([
                 'message' => sprintf('Failed to sign up via %s.', ucfirst($provider)),
@@ -39,8 +39,8 @@ class OAuthRegisteredUserController extends Controller
         return response()->json([
             'message' => sprintf('Successfully sign up via %s.', ucfirst($provider)),
             'data' => [
-                'token' => $result['token'],
+                'token' => $tokenAuth->accessToken,
             ],
-        ])->cookie($result['cookie']);
+        ])->cookie($tokenAuth->cookie());
     }
 }
